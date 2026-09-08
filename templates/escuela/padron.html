@@ -1,0 +1,106 @@
+{% extends "base.html" %}
+{% block titulo %}Padrón · VIVA SOCCER{% endblock %}
+
+{% block contenido %}
+<div class="flex flex-wrap items-center justify-between gap-4">
+  <div>
+    <p class="seccion-kicker">04 / Padrón de alumnos</p>
+    <h1 class="titulo mt-1 text-4xl">PADRÓN</h1>
+  </div>
+  <button type="button" class="btn-primario h-11 text-lg"
+          hx-get="{% url 'alumno_nuevo' %}" hx-target="#modal">
+    + AGREGAR ALUMNO
+  </button>
+</div>
+
+{# --- Buscador + filtros --- #}
+<form method="get" class="mt-6 flex flex-wrap items-center gap-3">
+  <input type="text" name="q" value="{{ q }}" placeholder="Buscar por nombre…"
+         class="campo min-w-0 flex-1 basis-64">
+  <input type="hidden" name="grupo" value="{{ grupo }}">
+  <button class="btn-fantasma">Buscar</button>
+</form>
+
+<div class="mt-3 flex flex-wrap gap-1">
+  {% for chip in chips %}
+  <a href="?grupo={{ chip.valor|urlencode }}{% if q %}&q={{ q|urlencode }}{% endif %}"
+     class="chip {% if chip.activo %}chip-activo{% endif %}">{{ chip.label }}</a>
+  {% endfor %}
+</div>
+
+{# --- Tabla + panel lateral --- #}
+<div class="mt-6 grid items-start gap-6 lg:grid-cols-[minmax(0,1fr)_380px]">
+  <div class="min-w-0 overflow-hidden rounded-xl border border-border bg-bg-surface">
+    <div class="overflow-x-auto">
+      <table class="w-full min-w-[720px] border-collapse text-sm">
+        <thead>
+          <tr class="bg-border text-left">
+            <th class="px-4 py-3 text-[11px] font-semibold tracking-[0.12em] text-text-muted">ID</th>
+            <th class="px-4 py-3 text-[11px] font-semibold tracking-[0.12em] text-text-muted">NOMBRE</th>
+            <th class="px-4 py-3 text-[11px] font-semibold tracking-[0.12em] text-text-muted">CATEGORÍA</th>
+            <th class="px-4 py-3 text-[11px] font-semibold tracking-[0.12em] text-text-muted">NACIMIENTO</th>
+            <th class="px-4 py-3 text-[11px] font-semibold tracking-[0.12em] text-text-muted">TUTOR</th>
+            <th class="px-4 py-3 text-[11px] font-semibold tracking-[0.12em] text-text-muted">TELÉFONO</th>
+            <th class="px-4 py-3 text-right text-[11px] font-semibold tracking-[0.12em] text-text-muted">ACCIONES</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for alumno in pagina %}
+          <tr class="cursor-pointer border-b border-border transition-colors hover:bg-border/50"
+              hx-get="{% url 'padron_detalle' alumno.pk %}" hx-target="#panel" hx-push-url="false">
+            <td class="px-4 py-3.5 font-mono text-xs text-text-muted">{{ alumno.folio }}</td>
+            <td class="px-4 py-3.5 font-semibold">
+              <a href="{% url 'ficha' alumno.pk %}" class="hover:text-accent">{{ alumno.nombre }}</a>
+            </td>
+            <td class="px-4 py-3.5">
+              <span class="inline-block rounded-full bg-border px-2.5 py-0.5 text-[11px] font-bold tracking-[0.08em]">
+                {{ alumno.get_categoria_display|upper }}
+              </span>
+            </td>
+            <td class="px-4 py-3.5 font-mono text-xs text-text-muted">{{ alumno.fecha_nacimiento|date:"d/m/Y" }}</td>
+            <td class="px-4 py-3.5 text-text-muted">{{ alumno.tutor }}</td>
+            <td class="px-4 py-3.5 font-mono text-xs text-text-muted">{{ alumno.telefono }}</td>
+            <td class="px-2 py-2 text-right whitespace-nowrap">
+              <button type="button" class="btn-fantasma h-8 px-3 text-xs"
+                      hx-get="{% url 'alumno_editar' alumno.pk %}" hx-target="#modal"
+                      onclick="event.stopPropagation()">Editar</button>
+            </td>
+          </tr>
+          {% empty %}
+          <tr><td colspan="7">
+            <div class="px-6 py-16 text-center">
+              <div class="mx-auto mb-4 h-14 w-14 rotate-45 rounded-xl border-2 border-border"></div>
+              <p class="titulo text-2xl">SIN RESULTADOS</p>
+              <p class="mt-2 text-sm text-text-muted">Ningún alumno coincide con la búsqueda y el filtro actual.</p>
+              <a href="{% url 'padron' %}" class="btn-fantasma mt-4 border-accent text-accent">Limpiar filtros</a>
+            </div>
+          </td></tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+
+    <div class="flex flex-wrap items-center justify-between gap-3 border-t border-border px-4 py-3">
+      <span class="font-mono text-xs text-text-muted">
+        {{ pagina.paginator.count }} alumno{{ pagina.paginator.count|pluralize:"s" }} ·
+        página {{ pagina.number }} de {{ pagina.paginator.num_pages }}
+      </span>
+      <div class="flex gap-1">
+        {% if pagina.has_previous %}
+        <a href="?page={{ pagina.previous_page_number }}&grupo={{ grupo|urlencode }}&q={{ q|urlencode }}"
+           class="flex h-9 w-9 items-center justify-center rounded-lg border border-border hover:border-accent-secondary">‹</a>
+        {% endif %}
+        {% if pagina.has_next %}
+        <a href="?page={{ pagina.next_page_number }}&grupo={{ grupo|urlencode }}&q={{ q|urlencode }}"
+           class="flex h-9 w-9 items-center justify-center rounded-lg border border-border hover:border-accent-secondary">›</a>
+        {% endif %}
+      </div>
+    </div>
+  </div>
+
+  {# Panel lateral: lo llena padron_detalle vía HTMX al hacer clic en una fila. #}
+  <aside id="panel" class="min-w-0 lg:sticky lg:top-[88px]">
+    <div class="tarjeta text-sm text-text-muted">Selecciona un alumno para ver su detalle.</div>
+  </aside>
+</div>
+{% endblock %}

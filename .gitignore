@@ -1,0 +1,13 @@
+# Python / Django
+.venv/
+__pycache__/
+*.py[cod]
+db.sqlite3
+/staticfiles/
+
+# Tailwind: binario y CSS generado
+/bin/tailwindcss
+/static/css/tailwind.css
+
+# Miniatura generada por la herramienta de diseño
+/design/.thumbnail

@@ -1,0 +1,70 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Entrar · VIVA SOCCER</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:ital,wght@0,600;0,700;1,700;1,800&family=Barlow:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="{% static 'css/tailwind.css' %}">
+</head>
+<body class="min-h-screen bg-bg-base font-sans text-text-primary">
+  <section class="grid min-h-screen grid-cols-1 md:grid-cols-2">
+
+    {# --- Lado de marca --- #}
+    <div class="relative flex flex-col justify-between overflow-hidden bg-bg-surface px-8 py-16 sm:px-12">
+      <div class="pointer-events-none absolute -left-40 -top-20 h-[900px] w-[520px] -skew-x-[14deg] bg-border"></div>
+      <div class="pointer-events-none absolute -bottom-28 left-10 h-[700px] w-[90px] -skew-x-[14deg] bg-accent/90"></div>
+
+      <p class="relative seccion-kicker">02 / Acceso</p>
+
+      <div class="relative">
+        <div class="flex flex-col font-display italic leading-[0.85]">
+          <span class="text-6xl font-extrabold text-accent sm:text-[96px]">VIVA</span>
+          <span class="text-6xl font-semibold tracking-[0.04em] sm:text-[96px]">SOCCER</span>
+        </div>
+        <p class="mt-6 max-w-sm text-base leading-relaxed text-text-muted">
+          Escuela de fútbol infantil. Padrón, evaluaciones y progresión de la temporada.
+        </p>
+      </div>
+
+      <p class="relative font-mono text-[11px] text-text-muted">Tijuana · Temporada {% now "Y" %}</p>
+    </div>
+
+    {# --- Lado del formulario --- #}
+    <div class="flex items-center justify-center px-8 py-16 sm:px-12">
+      <form method="post" class="flex w-full max-w-sm flex-col gap-6">
+        {% csrf_token %}
+        <div>
+          <h1 class="titulo text-3xl">ENTRAR A LA CANCHA</h1>
+          <p class="mt-1 text-sm text-text-muted">Administrador o entrenador</p>
+        </div>
+
+        {% if form.non_field_errors %}
+          <div class="rounded-lg border border-danger bg-danger/10 px-4 py-3 text-sm text-danger">
+            Usuario o contraseña incorrectos.
+          </div>
+        {% endif %}
+
+        <label class="flex flex-col gap-2">
+          <span class="etiqueta">Usuario</span>
+          <input type="text" name="username" autocomplete="username" autofocus required
+                 class="campo" placeholder="entrenador">
+        </label>
+
+        <label class="flex flex-col gap-2">
+          <span class="etiqueta">Contraseña</span>
+          <input type="password" name="password" autocomplete="current-password" required
+                 class="campo">
+        </label>
+
+        <input type="hidden" name="next" value="{{ next }}">
+        <button type="submit" class="btn-primario w-full">ENTRAR</button>
+      </form>
+    </div>
+
+  </section>
+</body>
+</html>

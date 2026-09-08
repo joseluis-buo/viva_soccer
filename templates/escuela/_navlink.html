@@ -1,0 +1,5 @@
+{% url destino as href %}
+<a href="{{ href }}"
+   class="flex h-[34px] items-center rounded-lg px-3.5 font-display text-[15px] font-bold tracking-[0.06em] transition-colors {% if href in request.path %}bg-border text-accent{% else %}text-text-muted hover:text-text-primary{% endif %}">
+  {{ texto }}
+</a>

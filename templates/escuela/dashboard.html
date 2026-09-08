@@ -1,0 +1,116 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block titulo %}Panel · VIVA SOCCER{% endblock %}
+
+{% block contenido %}
+<div class="mb-6 flex flex-wrap items-end justify-between gap-4">
+  <div>
+    <p class="seccion-kicker">03 / Dashboard</p>
+    <h1 class="titulo mt-1 text-4xl">TEMPORADA {{ hoy|date:"Y" }}</h1>
+  </div>
+  <p class="font-mono text-xs text-text-muted">Actualizado hoy · {{ hoy|date:"d M Y" }}</p>
+</div>
+
+{# --- Tarjetas de indicadores --- #}
+<div class="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
+  <div class="tarjeta relative overflow-hidden">
+    <div class="absolute left-0 top-0 h-full w-1 bg-accent"></div>
+    <p class="etiqueta">Alumnos activos</p>
+    <p class="cifra mt-2 text-6xl text-accent">{{ total_activos }}</p>
+  </div>
+
+  <div class="tarjeta">
+    <p class="etiqueta">Por categoría</p>
+    <div class="mt-4 flex flex-col gap-2">
+      {% for c in por_categoria %}
+      <div class="flex items-baseline justify-between">
+        <span class="text-sm">{{ c.nombre }}</span>
+        <span class="cifra text-2xl">{{ c.n }}</span>
+      </div>
+      <div class="h-1 rounded bg-border">
+        <div class="h-1 rounded bg-accent-secondary" style="width: {{ c.pct }}%"></div>
+      </div>
+      {% endfor %}
+    </div>
+  </div>
+
+  <div class="tarjeta">
+    <p class="etiqueta">Evaluaciones · {{ hoy|date:"M"|upper }}</p>
+    <p class="cifra mt-2 text-6xl">{{ eval_mes }}</p>
+    <p class="mt-2 text-sm text-text-muted">registradas este mes</p>
+  </div>
+
+  <div class="tarjeta">
+    <p class="etiqueta">Promedio general</p>
+    <p class="cifra mt-2 text-6xl">{{ promedio_general }}</p>
+    <p class="mt-2 text-sm text-text-muted">
+      Pase {{ promedio_pase }} · Recepción {{ promedio_recepcion }} · Tiro {{ promedio_tiro }}
+    </p>
+  </div>
+</div>
+
+{# --- Gráfica + progreso --- #}
+<div class="mt-6 grid gap-6 lg:grid-cols-2">
+  <div class="tarjeta">
+    <div class="flex flex-wrap items-center justify-between gap-3">
+      <h2 class="titulo text-2xl">PROMEDIO POR HABILIDAD Y CATEGORÍA</h2>
+      <div class="flex gap-4 text-xs text-text-muted">
+        <span class="flex items-center gap-1.5"><i class="block h-2.5 w-2.5 bg-accent"></i>Pase</span>
+        <span class="flex items-center gap-1.5"><i class="block h-2.5 w-2.5 bg-accent-secondary"></i>Recepción</span>
+        <span class="flex items-center gap-1.5"><i class="block h-2.5 w-2.5 bg-text-muted"></i>Tiro</span>
+      </div>
+    </div>
+    <div class="mt-4"><canvas id="graficaHabilidades" height="130"></canvas></div>
+  </div>
+
+  <div class="tarjeta">
+    <h2 class="titulo mb-4 text-2xl">MAYOR PROGRESO RECIENTE</h2>
+    <div class="flex flex-col">
+      {% for p in progreso %}
+      <a href="{% url 'ficha' p.alumno.pk %}" class="flex items-center gap-4 border-b border-border py-3 transition-colors hover:bg-border/40">
+        <span class="flex h-9 w-9 items-center justify-center rounded-lg bg-border font-display text-sm font-bold">
+          {{ p.alumno.nombre|slice:":1" }}{{ p.alumno.tutor|slice:":1" }}
+        </span>
+        <span class="min-w-0 flex-1">
+          <span class="block text-sm font-semibold">{{ p.alumno.nombre }}</span>
+          <span class="block text-xs text-text-muted">{{ p.alumno.get_categoria_display }} · {{ p.alumno.get_horario_display }}</span>
+        </span>
+        <span class="cifra text-xl text-success">+{{ p.delta }}</span>
+      </a>
+      {% empty %}
+      <p class="py-6 text-sm text-text-muted">Aún no hay suficientes evaluaciones para calcular progreso.</p>
+      {% endfor %}
+    </div>
+  </div>
+</div>
+
+{{ grafica|json_script:"datos-grafica" }}
+{% endblock %}
+
+{% block scripts %}
+<script src="{% static 'js/paleta.js' %}"></script>
+<script src="{% static 'js/chart.umd.min.js' %}"></script>
+<script>
+  (function () {
+    const datos = JSON.parse(document.getElementById("datos-grafica").textContent);
+    const ejeGris = { grid: { color: PALETA.border }, ticks: { color: PALETA.textMuted } };
+    new Chart(document.getElementById("graficaHabilidades"), {
+      type: "bar",
+      data: {
+        labels: datos.categorias,
+        datasets: [
+          { label: "Pase", data: datos.pase, backgroundColor: PALETA.accent },
+          { label: "Recepción", data: datos.recepcion, backgroundColor: PALETA.accentSecundario },
+          { label: "Tiro", data: datos.tiro, backgroundColor: PALETA.textMuted },
+        ],
+      },
+      options: {
+        responsive: true,
+        plugins: { legend: { display: false } },
+        scales: { x: ejeGris, y: { ...ejeGris, min: 0, max: 10 } },
+      },
+    });
+  })();
+</script>
+{% endblock %}

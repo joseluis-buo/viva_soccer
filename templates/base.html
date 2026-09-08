@@ -1,0 +1,71 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>{% block titulo %}VIVA SOCCER{% endblock %}</title>
+
+  {# Tipografía del diseño: Barlow Condensed (display/marca), Barlow (datos), IBM Plex Mono (IDs, fechas). #}
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:ital,wght@0,600;0,700;1,700;1,800&family=Barlow:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+
+  {# CSS compilado por Tailwind (bin/tailwindcss -i static/src/input.css -o static/css/tailwind.css). #}
+  <link rel="stylesheet" href="{% static 'css/tailwind.css' %}">
+</head>
+<body class="min-h-screen bg-bg-base font-sans text-text-primary">
+
+  {% if user.is_authenticated %}
+  {# ---------- Encabezado global: barra fija con logo y navegación ---------- #}
+  <header class="sticky top-0 z-40 border-b border-border bg-bg-base/95 backdrop-blur">
+    <div class="mx-auto flex max-w-app flex-wrap items-center gap-x-6 gap-y-3 px-6 py-3">
+
+      {# Logo VIVA SOCCER — Barlow Condensed itálica; VIVA 800 neón, SOCCER 600 blanco. #}
+      <a href="{% url 'raiz' %}" class="flex items-baseline gap-1.5 font-display text-lg font-extrabold italic leading-none tracking-[0.02em] sm:text-[26px]">
+        <span class="text-accent">VIVA</span><span class="font-semibold text-text-primary">SOCCER</span>
+      </a>
+
+      <nav class="flex flex-wrap gap-1">
+        {% if es_administrador %}
+          {% include "escuela/_navlink.html" with destino='dashboard' texto='Panel' %}
+          {% include "escuela/_navlink.html" with destino='padron' texto='Padrón' %}
+        {% endif %}
+        {% if es_entrenador %}
+          {% include "escuela/_navlink.html" with destino='captura' texto='Captura' %}
+        {% endif %}
+      </nav>
+
+      <div class="ml-auto flex items-center gap-3">
+        <span class="hidden font-mono text-xs text-text-muted sm:block">{{ user.get_username }}</span>
+        <span class="flex h-9 w-9 items-center justify-center rounded-full bg-accent-secondary text-xs font-bold text-text-primary">{{ user.get_username|slice:':2'|upper }}</span>
+        <form method="post" action="{% url 'logout' %}">{% csrf_token %}
+          <button class="btn-fantasma h-9 px-3 text-xs">Salir</button>
+        </form>
+      </div>
+
+    </div>
+  </header>
+  {% endif %}
+
+  {% if messages %}
+  <div class="mx-auto max-w-app px-6 pt-4">
+    {% for m in messages %}
+    <div class="mb-2 rounded-lg border border-border bg-bg-surface px-4 py-3 text-sm {% if m.tags == 'error' %}text-danger{% else %}text-success{% endif %}">{{ m }}</div>
+    {% endfor %}
+  </div>
+  {% endif %}
+
+  {# ---------- Contenido de cada pantalla ---------- #}
+  <main class="mx-auto max-w-app px-6 pt-8 pb-16">
+    {% block contenido %}{% endblock %}
+  </main>
+
+  {# Contenedor para modales cargados con HTMX (formulario de alumno). #}
+  <div id="modal"></div>
+
+  {# HTMX servido localmente (funciona sin red, p. ej. en la cancha). #}
+  <script src="{% static 'js/htmx.min.js' %}" defer></script>
+  {% block scripts %}{% endblock %}
+</body>
+</html>

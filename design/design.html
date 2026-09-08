@@ -1,0 +1,823 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin="" />
+<link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:ital,wght@0,600;0,700;1,700;1,800&family=Barlow:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet" />
+<style>
+  html, body { margin: 0; padding: 0; background: #12081F; }
+  * { box-sizing: border-box; }
+  a { color: #C6FF00; text-decoration: none; }
+  a:hover { color: #E4FF66; }
+  input, select, button { font-family: inherit; }
+  input::placeholder { color: #6E6480; }
+  @keyframes htmxpulse { 0%,100% { opacity: .35 } 50% { opacity: 1 } }
+</style>
+</helmet>
+
+<div style="min-height: 100vh; background: #12081F; font-family: Barlow, system-ui, sans-serif; color: #F5F3FA;">
+
+  <div style="position: sticky; top: 0; z-index: 40; background: rgba(18,8,31,.94); backdrop-filter: blur(8px); border-bottom: 1px solid #2D1B4E;">
+    <div style="max-width: 1440px; margin: 0 auto; padding: 12px 24px; display: flex; align-items: center; gap: 24px; flex-wrap: wrap;">
+      <div style="display: flex; align-items: baseline; gap: 6px; font-family: 'Barlow Condensed', sans-serif; font-style: italic; font-weight: 800; font-size: 26px; letter-spacing: .02em; line-height: 1;">
+        <span style="color: #C6FF00;">VIVA</span><span style="color: #F5F3FA; font-weight: 600;">SOCCER</span>
+      </div>
+      <div style="display: flex; gap: 4px; flex-wrap: wrap;">
+        <sc-for list="{{ tabs }}" as="t" hint-placeholder-count="8">
+          <button onClick="{{ t.go }}" style="{{ t.style }}" style-hover="color:#F5F3FA">{{ t.label }}</button>
+        </sc-for>
+      </div>
+    </div>
+  </div>
+
+  <sc-if value="{{ isMarca }}" hint-placeholder-val="{{ true }}">
+  <section style="max-width: 1440px; margin: 0 auto; padding: 48px 24px 64px;">
+    <div style="font-family: 'IBM Plex Mono', monospace; font-size: 11px; letter-spacing: .18em; color: #A79FB8; margin-bottom: 8px;">01 / MARCA</div>
+    <h1 style="font-family: 'Barlow Condensed', sans-serif; font-weight: 700; font-size: 44px; margin: 0 0 32px; letter-spacing: .01em;">Tratamiento del logotipo</h1>
+
+    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); gap: 24px;">
+
+      <div style="background: #1E1033; border: 1px solid #2D1B4E; border-radius: 12px; padding: 32px; display: flex; flex-direction: column; gap: 24px;">
+        <div style="font-family: 'IBM Plex Mono', monospace; font-size: 11px; color: #A79FB8; letter-spacing: .12em;">COMPLETO — LOGIN · 64px</div>
+        <div style="display: flex; align-items: baseline; gap: 10px; font-family: 'Barlow Condensed', sans-serif; font-style: italic; line-height: .9;">
+          <span style="color: #C6FF00; font-weight: 800; font-size: 64px; letter-spacing: -.01em;">VIVA</span>
+          <span style="color: #F5F3FA; font-weight: 600; font-size: 64px; letter-spacing: .06em;">SOCCER</span>
+        </div>
+        <div style="height: 6px; width: 180px; background: #C6FF00; transform: skewX(-18deg);"></div>
+        <div style="font-family: 'IBM Plex Mono', monospace; font-size: 11px; color: #6E6480; line-height: 1.7;">Barlow Condensed Italic<br />VIVA 800 · #C6FF00<br />SOCCER 600 · #F5F3FA<br />tracking: -1% / +6%</div>
+      </div>
+
+      <div style="background: #1E1033; border: 1px solid #2D1B4E; border-radius: 12px; padding: 32px; display: flex; flex-direction: column; gap: 24px;">
+        <div style="font-family: 'IBM Plex Mono', monospace; font-size: 11px; color: #A79FB8; letter-spacing: .12em;">NAV — 26px · MÓVIL — 18px</div>
+        <div style="display: flex; align-items: baseline; gap: 6px; font-family: 'Barlow Condensed', sans-serif; font-style: italic; line-height: 1;">
+          <span style="color: #C6FF00; font-weight: 800; font-size: 26px;">VIVA</span><span style="color: #F5F3FA; font-weight: 600; font-size: 26px;">SOCCER</span>
+        </div>
+        <div style="display: flex; align-items: baseline; gap: 4px; font-family: 'Barlow Condensed', sans-serif; font-style: italic; line-height: 1;">
+          <span style="color: #C6FF00; font-weight: 800; font-size: 18px;">VIVA</span><span style="color: #F5F3FA; font-weight: 600; font-size: 18px;">SOCCER</span>
+        </div>
+        <div style="border-top: 1px solid #2D1B4E; padding-top: 24px; display: flex; align-items: center; gap: 16px;">
+          <div style="font-family: 'Barlow Condensed', sans-serif; font-style: italic; font-weight: 800; font-size: 40px; color: #2D1B4E; line-height: 1;">VIVASOCCER</div>
+        </div>
+        <div style="font-family: 'IBM Plex Mono', monospace; font-size: 11px; color: #6E6480;">Marca de agua: #2D1B4E sobre #1E1033</div>
+      </div>
+
+      <div style="background: #1E1033; border: 1px solid #2D1B4E; border-radius: 12px; padding: 32px; display: flex; flex-direction: column; gap: 24px;">
+        <div style="font-family: 'IBM Plex Mono', monospace; font-size: 11px; color: #A79FB8; letter-spacing: .12em;">MONOGRAMA VS — FAVICON</div>
+        <div style="display: flex; align-items: center; gap: 16px; flex-wrap: wrap;">
+          <div style="width: 88px; height: 88px; background: #C6FF00; border-radius: 12px; display: flex; align-items: center; justify-content: center; font-family: 'Barlow Condensed', sans-serif; font-style: italic; font-weight: 800; font-size: 46px; color: #12081F; line-height: 1;">VS</div>
+          <div style="width: 56px; height: 56px; background: #12081F; border: 2px solid #C6FF00; border-radius: 10px; display: flex; align-items: center; justify-content: center; font-family: 'Barlow Condensed', sans-serif; font-style: italic; font-weight: 800; font-size: 28px; color: #C6FF00; line-height: 1;">VS</div>
+          <div style="width: 32px; height: 32px; background: #7B2FF7; border-radius: 8px; display: flex; align-items: center; justify-content: center; font-family: 'Barlow Condensed', sans-serif; font-style: italic; font-weight: 800; font-size: 16px; color: #F5F3FA; line-height: 1;">VS</div>
+        </div>
+        <div style="font-family: 'IBM Plex Mono', monospace; font-size: 11px; color: #6E6480; line-height: 1.7;">Doble lectura: iniciales y “versus”.<br />La diagonal del itálico separa V | S.</div>
+      </div>
+    </div>
+
+    <sc-if value="{{ specs }}" hint-placeholder-val="{{ true }}"><div style="margin-top: 24px; border-top: 1px solid #2D1B4E; padding-top: 16px; display: flex; gap: 32px; flex-wrap: wrap; font-family: 'IBM Plex Mono', monospace; font-size: 11px; color: #A79FB8;">
+      <span>Títulos: Barlow Condensed 700/800</span><span>Datos: Barlow 400/500/600</span><span>Numérico y specs: IBM Plex Mono</span><span>Radios: 8 / 12px</span><span>Grid: 4 · 8 · 12 · 16 · 24 · 32</span>
+    </div></sc-if>
+  </section>
+  </sc-if>
+
+  <sc-if value="{{ isLogin }}" hint-placeholder-val="{{ false }}">
+  <section style="position: relative; overflow: hidden; min-height: 720px; display: grid; grid-template-columns: repeat(auto-fit, minmax(340px, 1fr)); background: #12081F;">
+    <div style="position: relative; overflow: hidden; padding: 64px 48px; display: flex; flex-direction: column; justify-content: space-between; background: #1E1033;">
+      <div style="position: absolute; top: -80px; left: -160px; width: 520px; height: 900px; background: #2D1B4E; transform: skewX(-14deg);"></div>
+      <div style="position: absolute; bottom: -120px; left: 40px; width: 90px; height: 700px; background: #C6FF00; opacity: .9; transform: skewX(-14deg);"></div>
+      <div style="position: relative; font-family: 'IBM Plex Mono', monospace; font-size: 11px; letter-spacing: .18em; color: #A79FB8;">02 / LOGIN</div>
+      <div style="position: relative;">
+        <div style="display: flex; flex-direction: column; font-family: 'Barlow Condensed', sans-serif; font-style: italic; line-height: .85;">
+          <span style="color: #C6FF00; font-weight: 800; font-size: 96px;">VIVA</span>
+          <span style="color: #F5F3FA; font-weight: 600; font-size: 96px; letter-spacing: .04em;">SOCCER</span>
+        </div>
+        <p style="margin: 24px 0 0; max-width: 380px; color: #A79FB8; font-size: 16px; line-height: 1.6;">Escuela de fútbol infantil. Padrón, evaluaciones y progresión de la temporada.</p>
+      </div>
+      <div style="position: relative; font-family: 'IBM Plex Mono', monospace; font-size: 11px; color: #6E6480;">Fondo #1E1033 · barra #C6FF00 skewX(-14deg) · logo 96px</div>
+    </div>
+
+    <div style="padding: 64px 48px; display: flex; align-items: center; justify-content: center;">
+      <form onSubmit="{{ noop }}" style="width: 100%; max-width: 400px; display: flex; flex-direction: column; gap: 24px;">
+        <div>
+          <h2 style="font-family: 'Barlow Condensed', sans-serif; font-weight: 700; font-size: 34px; margin: 0; letter-spacing: .01em;">ENTRAR A LA CANCHA</h2>
+          <p style="margin: 4px 0 0; color: #A79FB8; font-size: 14px;">Administrador o entrenador</p>
+        </div>
+        <label style="display: flex; flex-direction: column; gap: 8px;">
+          <span style="font-size: 12px; font-weight: 600; letter-spacing: .1em; color: #A79FB8;">USUARIO</span>
+          <input type="text" placeholder="entrenador@vivasoccer.mx" style="height: 48px; padding: 0 16px; background: #12081F; border: 1px solid #2D1B4E; border-radius: 8px; color: #F5F3FA; font-size: 16px; outline: none;" style-focus="border-color:#C6FF00; box-shadow:0 0 0 3px rgba(198,255,0,.18)" />
+        </label>
+        <label style="display: flex; flex-direction: column; gap: 8px;">
+          <span style="font-size: 12px; font-weight: 600; letter-spacing: .1em; color: #A79FB8;">CONTRASEÑA</span>
+          <input type="password" value="············" style="height: 48px; padding: 0 16px; background: #12081F; border: 1px solid #2D1B4E; border-radius: 8px; color: #F5F3FA; font-size: 16px; outline: none;" style-focus="border-color:#C6FF00; box-shadow:0 0 0 3px rgba(198,255,0,.18)" />
+        </label>
+        <button type="button" onClick="{{ goPadron }}" style="height: 52px; background: #C6FF00; color: #12081F; border: 0; border-radius: 8px; font-family: 'Barlow Condensed', sans-serif; font-style: italic; font-weight: 800; font-size: 22px; letter-spacing: .06em; cursor: pointer;" style-hover="background:#D8FF3D" style-active="transform:translateY(1px)">ENTRAR</button>
+        <div style="display: flex; justify-content: space-between; align-items: center; font-size: 13px; color: #A79FB8;">
+          <a href="#1a">Olvidé mi contraseña</a>
+          <span style="font-family: 'IBM Plex Mono', monospace; font-size: 11px; color: #6E6480;">inputs 48px · botón 52px</span>
+        </div>
+      </form>
+    </div>
+  </section>
+  </sc-if>
+
+  <sc-if value="{{ isDash }}" hint-placeholder-val="{{ false }}">
+  <section style="max-width: 1440px; margin: 0 auto; padding: 32px 24px 64px;">
+    <div style="display: flex; align-items: flex-end; justify-content: space-between; gap: 16px; flex-wrap: wrap; margin-bottom: 24px;">
+      <div>
+        <div style="font-family: 'IBM Plex Mono', monospace; font-size: 11px; letter-spacing: .18em; color: #A79FB8;">03 / DASHBOARD</div>
+        <h1 style="font-family: 'Barlow Condensed', sans-serif; font-weight: 700; font-size: 40px; margin: 4px 0 0;">TEMPORADA 2026</h1>
+      </div>
+      <div style="font-family: 'IBM Plex Mono', monospace; font-size: 12px; color: #A79FB8;">Actualizado hoy · 08 sep 2026</div>
+    </div>
+
+    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 16px;">
+      <div style="background: #1E1033; border: 1px solid #2D1B4E; border-radius: 12px; padding: 24px; position: relative; overflow: hidden;">
+        <div style="position: absolute; top: 0; left: 0; width: 4px; height: 100%; background: #C6FF00;"></div>
+        <div style="font-size: 12px; font-weight: 600; letter-spacing: .1em; color: #A79FB8;">ALUMNOS ACTIVOS</div>
+        <div style="font-family: 'Barlow Condensed', sans-serif; font-weight: 700; font-size: 64px; line-height: 1; color: #C6FF00; margin-top: 8px;">184</div>
+        <div style="font-size: 13px; color: #3DDC91; margin-top: 8px;">+12 este mes</div>
+      </div>
+      <div style="background: #1E1033; border: 1px solid #2D1B4E; border-radius: 12px; padding: 24px;">
+        <div style="font-size: 12px; font-weight: 600; letter-spacing: .1em; color: #A79FB8;">POR CATEGORÍA</div>
+        <div style="display: flex; flex-direction: column; gap: 8px; margin-top: 16px;">
+          <div style="display: flex; justify-content: space-between; align-items: baseline;"><span style="font-size: 14px; color: #F5F3FA;">MINI</span><span style="font-family: 'Barlow Condensed', sans-serif; font-weight: 700; font-size: 26px;">62</span></div>
+          <div style="height: 4px; background: #2D1B4E; border-radius: 2px;"><div style="width: 82%; height: 4px; background: #7B2FF7; border-radius: 2px;"></div></div>
+          <div style="display: flex; justify-content: space-between; align-items: baseline;"><span style="font-size: 14px; color: #F5F3FA;">MENOR</span><span style="font-family: 'Barlow Condensed', sans-serif; font-weight: 700; font-size: 26px;">71</span></div>
+          <div style="height: 4px; background: #2D1B4E; border-radius: 2px;"><div style="width: 94%; height: 4px; background: #7B2FF7; border-radius: 2px;"></div></div>
+          <div style="display: flex; justify-content: space-between; align-items: baseline;"><span style="font-size: 14px; color: #F5F3FA;">MAYOR</span><span style="font-family: 'Barlow Condensed', sans-serif; font-weight: 700; font-size: 26px;">51</span></div>
+          <div style="height: 4px; background: #2D1B4E; border-radius: 2px;"><div style="width: 68%; height: 4px; background: #7B2FF7; border-radius: 2px;"></div></div>
+        </div>
+      </div>
+      <div style="background: #1E1033; border: 1px solid #2D1B4E; border-radius: 12px; padding: 24px;">
+        <div style="font-size: 12px; font-weight: 600; letter-spacing: .1em; color: #A79FB8;">EVALUACIONES · SEP</div>
+        <div style="font-family: 'Barlow Condensed', sans-serif; font-weight: 700; font-size: 64px; line-height: 1; margin-top: 8px;">1,104</div>
+        <div style="font-size: 13px; color: #A79FB8; margin-top: 8px;">6 sesiones capturadas de 8</div>
+      </div>
+      <div style="background: #1E1033; border: 1px solid #2D1B4E; border-radius: 12px; padding: 24px;">
+        <div style="font-size: 12px; font-weight: 600; letter-spacing: .1em; color: #A79FB8;">PROMEDIO GENERAL</div>
+        <div style="font-family: 'Barlow Condensed', sans-serif; font-weight: 700; font-size: 64px; line-height: 1; margin-top: 8px;">7.4</div>
+        <div style="font-size: 13px; color: #A79FB8; margin-top: 8px;">Pase 7.6 · Recepción 7.1 · Tiro 7.5</div>
+      </div>
+    </div>
+
+    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); gap: 24px; margin-top: 24px;">
+      <div style="background: #1E1033; border: 1px solid #2D1B4E; border-radius: 12px; padding: 24px;">
+        <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 12px;">
+          <h2 style="font-family: 'Barlow Condensed', sans-serif; font-weight: 700; font-size: 24px; margin: 0;">PROMEDIO POR HABILIDAD Y CATEGORÍA</h2>
+          <div style="display: flex; gap: 16px; font-size: 12px; color: #A79FB8;">
+            <span style="display: flex; align-items: center; gap: 6px;"><i style="width: 10px; height: 10px; background: #C6FF00; display: block;"></i>Pase</span>
+            <span style="display: flex; align-items: center; gap: 6px;"><i style="width: 10px; height: 10px; background: #7B2FF7; display: block;"></i>Recepción</span>
+            <span style="display: flex; align-items: center; gap: 6px;"><i style="width: 10px; height: 10px; background: #6E6480; display: block;"></i>Tiro</span>
+          </div>
+        </div>
+        <svg viewBox="0 0 520 260" style="width: 100%; height: auto; margin-top: 16px; display: block;">
+          <line x1="40" y1="20" x2="520" y2="20" stroke="#2D1B4E" stroke-width="1"></line>
+          <line x1="40" y1="80" x2="520" y2="80" stroke="#2D1B4E" stroke-width="1"></line>
+          <line x1="40" y1="140" x2="520" y2="140" stroke="#2D1B4E" stroke-width="1"></line>
+          <line x1="40" y1="200" x2="520" y2="200" stroke="#2D1B4E" stroke-width="1"></line>
+          <text x="0" y="24" fill="#6E6480" font-size="11" font-family="IBM Plex Mono">10</text>
+          <text x="0" y="84" fill="#6E6480" font-size="11" font-family="IBM Plex Mono">7.5</text>
+          <text x="0" y="144" fill="#6E6480" font-size="11" font-family="IBM Plex Mono">5</text>
+          <text x="0" y="204" fill="#6E6480" font-size="11" font-family="IBM Plex Mono">2.5</text>
+          <rect x="70" y="86" width="34" height="114" fill="#C6FF00"></rect>
+          <rect x="108" y="106" width="34" height="94" fill="#7B2FF7"></rect>
+          <rect x="146" y="98" width="34" height="102" fill="#6E6480"></rect>
+          <text x="106" y="222" fill="#A79FB8" font-size="13" font-family="Barlow" text-anchor="middle">MINI</text>
+          <rect x="230" y="70" width="34" height="130" fill="#C6FF00"></rect>
+          <rect x="268" y="82" width="34" height="118" fill="#7B2FF7"></rect>
+          <rect x="306" y="76" width="34" height="124" fill="#6E6480"></rect>
+          <text x="266" y="222" fill="#A79FB8" font-size="13" font-family="Barlow" text-anchor="middle">MENOR</text>
+          <rect x="390" y="54" width="34" height="146" fill="#C6FF00"></rect>
+          <rect x="428" y="66" width="34" height="134" fill="#7B2FF7"></rect>
+          <rect x="466" y="58" width="34" height="142" fill="#6E6480"></rect>
+          <text x="426" y="222" fill="#A79FB8" font-size="13" font-family="Barlow" text-anchor="middle">MAYOR</text>
+        </svg>
+      </div>
+
+      <div style="background: #1E1033; border: 1px solid #2D1B4E; border-radius: 12px; padding: 24px;">
+        <h2 style="font-family: 'Barlow Condensed', sans-serif; font-weight: 700; font-size: 24px; margin: 0 0 16px;">MAYOR PROGRESO RECIENTE</h2>
+        <div style="display: flex; flex-direction: column;">
+          <sc-for list="{{ progreso }}" as="p" hint-placeholder-count="5">
+            <div style="display: flex; align-items: center; gap: 16px; padding: 12px 0; border-bottom: 1px solid #2D1B4E;">
+              <div style="width: 36px; height: 36px; border-radius: 8px; background: #2D1B4E; display: flex; align-items: center; justify-content: center; font-family: 'Barlow Condensed', sans-serif; font-weight: 700; font-size: 15px; color: #F5F3FA;">{{ p.ini }}</div>
+              <div style="flex: 1; min-width: 0;">
+                <div style="font-size: 15px; font-weight: 600; color: #F5F3FA;">{{ p.nombre }}</div>
+                <div style="font-size: 12px; color: #A79FB8;">{{ p.cat }} · {{ p.horario }}</div>
+              </div>
+              <div style="font-family: 'Barlow Condensed', sans-serif; font-weight: 700; font-size: 22px; color: #3DDC91;">{{ p.delta }}</div>
+            </div>
+          </sc-for>
+        </div>
+      </div>
+    </div>
+
+    <sc-if value="{{ specs }}" hint-placeholder-val="{{ true }}"><div style="margin-top: 24px; border-top: 1px solid #2D1B4E; padding-top: 16px; display: flex; gap: 32px; flex-wrap: wrap; font-family: 'IBM Plex Mono', monospace; font-size: 11px; color: #A79FB8;">
+      <span>Cards: #1E1033 / borde #2D1B4E / radius 12 / padding 24</span><span>Cifra grande: Condensed 700 · 64px</span><span>Gap grid: 16 y 24px</span><span>Neón: 1 cifra + 1 serie</span>
+    </div></sc-if>
+  </section>
+  </sc-if>
+
+  <sc-if value="{{ isPadron }}" hint-placeholder-val="{{ false }}">
+  <section style="max-width: 1440px; margin: 0 auto; padding: 32px 24px 64px;">
+    <div style="display: flex; align-items: center; justify-content: space-between; gap: 16px; flex-wrap: wrap;">
+      <div>
+        <div style="font-family: 'IBM Plex Mono', monospace; font-size: 11px; letter-spacing: .18em; color: #A79FB8;">04 / PADRÓN DE ALUMNOS</div>
+        <h1 style="font-family: 'Barlow Condensed', sans-serif; font-weight: 700; font-size: 40px; margin: 4px 0 0;">PADRÓN</h1>
+      </div>
+      <div style="display: flex; align-items: center; gap: 12px;">
+        <button onClick="{{ openModal }}" style="height: 44px; padding: 0 24px; background: #C6FF00; color: #12081F; border: 0; border-radius: 8px; font-family: 'Barlow Condensed', sans-serif; font-style: italic; font-weight: 800; font-size: 18px; letter-spacing: .06em; cursor: pointer;" style-hover="background:#D8FF3D">+ AGREGAR ALUMNO</button>
+        <div style="width: 40px; height: 40px; border-radius: 999px; background: #7B2FF7; display: flex; align-items: center; justify-content: center; font-weight: 700; font-size: 14px;">AR</div>
+      </div>
+    </div>
+
+    <div style="display: flex; gap: 12px; flex-wrap: wrap; margin-top: 24px; align-items: center;">
+      <input type="text" value="{{ q }}" onChange="{{ onSearch }}" placeholder="Buscar por nombre…" style="height: 44px; flex: 1 1 260px; min-width: 0; padding: 0 16px; background: #1E1033; border: 1px solid #2D1B4E; border-radius: 8px; color: #F5F3FA; font-size: 15px; outline: none;" style-focus="border-color:#C6FF00" />
+      <div style="display: flex; gap: 4px; flex-wrap: wrap;">
+        <sc-for list="{{ chips }}" as="c" hint-placeholder-count="7">
+          <button onClick="{{ c.go }}" style="{{ c.style }}">{{ c.label }}</button>
+        </sc-for>
+      </div>
+    </div>
+
+    <div style="display: grid; grid-template-columns: {{ padronCols }}; gap: 24px; margin-top: 24px; align-items: start;">
+      <div style="min-width: 0; background: #1E1033; border: 1px solid #2D1B4E; border-radius: 12px; overflow: hidden;">
+        <div style="overflow-x: auto;">
+          <table style="width: 100%; border-collapse: collapse; font-size: 14px; min-width: 720px;">
+            <thead>
+              <tr style="background: #2D1B4E;">
+                <th style="text-align: left; padding: 12px 16px; font-size: 11px; letter-spacing: .12em; color: #A79FB8; font-weight: 600;">ID</th>
+                <th style="text-align: left; padding: 12px 16px; font-size: 11px; letter-spacing: .12em; color: #A79FB8; font-weight: 600;">NOMBRE</th>
+                <th style="text-align: left; padding: 12px 16px; font-size: 11px; letter-spacing: .12em; color: #A79FB8; font-weight: 600;">CATEGORÍA</th>
+                <th style="text-align: left; padding: 12px 16px; font-size: 11px; letter-spacing: .12em; color: #A79FB8; font-weight: 600;">NACIMIENTO</th>
+                <th style="text-align: left; padding: 12px 16px; font-size: 11px; letter-spacing: .12em; color: #A79FB8; font-weight: 600;">TUTOR</th>
+                <th style="text-align: left; padding: 12px 16px; font-size: 11px; letter-spacing: .12em; color: #A79FB8; font-weight: 600;">TELÉFONO</th>
+                <th style="text-align: right; padding: 12px 16px; font-size: 11px; letter-spacing: .12em; color: #A79FB8; font-weight: 600;">ACCIONES</th>
+              </tr>
+            </thead>
+            <tbody>
+              <sc-for list="{{ rows }}" as="r" hint-placeholder-count="8">
+                <tr onClick="{{ r.select }}" style="{{ r.style }}" style-hover="background:#241443">
+                  <td style="padding: 14px 16px; font-family: 'IBM Plex Mono', monospace; font-size: 12px; color: #A79FB8;">{{ r.id }}</td>
+                  <td style="padding: 14px 16px; font-weight: 600; color: #F5F3FA;">{{ r.nombre }}</td>
+                  <td style="padding: 14px 16px;"><span style="{{ r.catStyle }}">{{ r.cat }}</span></td>
+                  <td style="padding: 14px 16px; color: #A79FB8; font-family: 'IBM Plex Mono', monospace; font-size: 12px;">{{ r.nac }}</td>
+                  <td style="padding: 14px 16px; color: #A79FB8;">{{ r.tutor }}</td>
+                  <td style="padding: 14px 16px; color: #A79FB8; font-family: 'IBM Plex Mono', monospace; font-size: 12px;">{{ r.tel }}</td>
+                  <td style="padding: 10px 16px; text-align: right; white-space: nowrap;">
+                    <button style="height: 32px; padding: 0 12px; margin-left: 8px; background: transparent; border: 1px solid #2D1B4E; border-radius: 8px; color: #F5F3FA; font-size: 12px; cursor: pointer;" style-hover="border-color:#C6FF00; color:#C6FF00">Editar</button>
+                    <button style="height: 32px; padding: 0 12px; margin-left: 8px; background: transparent; border: 1px solid #2D1B4E; border-radius: 8px; color: #A79FB8; font-size: 12px; cursor: pointer;" style-hover="border-color:#FF4D6D; color:#FF4D6D">Eliminar</button>
+                  </td>
+                </tr>
+              </sc-for>
+            </tbody>
+          </table>
+        </div>
+
+        <sc-if value="{{ vacio }}" hint-placeholder-val="{{ false }}">
+          <div style="padding: 64px 24px; text-align: center;">
+            <div style="width: 56px; height: 56px; margin: 0 auto 16px; border: 2px solid #2D1B4E; border-radius: 12px; transform: rotate(45deg);"></div>
+            <div style="font-family: 'Barlow Condensed', sans-serif; font-weight: 700; font-size: 24px;">SIN RESULTADOS</div>
+            <p style="color: #A79FB8; font-size: 14px; margin: 8px 0 16px;">Ningún alumno coincide con la búsqueda y el filtro actual.</p>
+            <button onClick="{{ clearFilters }}" style="height: 40px; padding: 0 20px; background: transparent; border: 1px solid #C6FF00; border-radius: 8px; color: #C6FF00; font-size: 14px; font-weight: 600; cursor: pointer;" style-hover="background:rgba(198,255,0,.1)">Limpiar filtros</button>
+          </div>
+        </sc-if>
+
+        <div style="display: flex; align-items: center; justify-content: space-between; gap: 12px; flex-wrap: wrap; padding: 12px 16px; border-top: 1px solid #2D1B4E;">
+          <div style="font-family: 'IBM Plex Mono', monospace; font-size: 12px; color: #A79FB8;">{{ conteo }}</div>
+          <div style="display: flex; gap: 4px;">
+            <button style="width: 36px; height: 36px; background: transparent; border: 1px solid #2D1B4E; border-radius: 8px; color: #6E6480; cursor: not-allowed;">‹</button>
+            <button style="width: 36px; height: 36px; background: #C6FF00; border: 0; border-radius: 8px; color: #12081F; font-weight: 700; cursor: pointer;">1</button>
+            <button style="width: 36px; height: 36px; background: transparent; border: 1px solid #2D1B4E; border-radius: 8px; color: #F5F3FA; cursor: pointer;" style-hover="border-color:#7B2FF7">2</button>
+            <button style="width: 36px; height: 36px; background: transparent; border: 1px solid #2D1B4E; border-radius: 8px; color: #F5F3FA; cursor: pointer;" style-hover="border-color:#7B2FF7">3</button>
+            <button style="width: 36px; height: 36px; background: transparent; border: 1px solid #2D1B4E; border-radius: 8px; color: #F5F3FA; cursor: pointer;" style-hover="border-color:#7B2FF7">›</button>
+          </div>
+        </div>
+      </div>
+
+      <sc-if value="{{ hasSel }}" hint-placeholder-val="{{ false }}">
+        <aside style="min-width: 0; background: #1E1033; border: 1px solid #2D1B4E; border-radius: 12px; padding: 24px; position: sticky; top: 88px;">
+          <div style="display: flex; justify-content: space-between; align-items: flex-start; gap: 12px;">
+            <div>
+              <div style="font-family: 'IBM Plex Mono', monospace; font-size: 11px; color: #A79FB8;">{{ sel.id }}</div>
+              <h2 style="font-family: 'Barlow Condensed', sans-serif; font-weight: 700; font-size: 28px; margin: 4px 0 0; line-height: 1.1;">{{ sel.nombre }}</h2>
+              <div style="font-size: 13px; color: #A79FB8; margin-top: 4px;">{{ sel.cat }} · {{ sel.horario }}</div>
+            </div>
+            <button onClick="{{ clearSel }}" style="width: 32px; height: 32px; background: transparent; border: 1px solid #2D1B4E; border-radius: 8px; color: #A79FB8; cursor: pointer;" style-hover="color:#F5F3FA; border-color:#7B2FF7">✕</button>
+          </div>
+
+          <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; margin-top: 24px;">
+            <div style="background: #12081F; border: 1px solid #2D1B4E; border-radius: 8px; padding: 12px;">
+              <div style="font-size: 10px; letter-spacing: .12em; color: #A79FB8;">PASE</div>
+              <div style="font-family: 'Barlow Condensed', sans-serif; font-weight: 700; font-size: 34px; color: #C6FF00; line-height: 1;">{{ sel.pase }}</div>
+            </div>
+            <div style="background: #12081F; border: 1px solid #2D1B4E; border-radius: 8px; padding: 12px;">
+              <div style="font-size: 10px; letter-spacing: .12em; color: #A79FB8;">RECEP.</div>
+              <div style="font-family: 'Barlow Condensed', sans-serif; font-weight: 700; font-size: 34px; line-height: 1;">{{ sel.recep }}</div>
+            </div>
+            <div style="background: #12081F; border: 1px solid #2D1B4E; border-radius: 8px; padding: 12px;">
+              <div style="font-size: 10px; letter-spacing: .12em; color: #A79FB8;">TIRO</div>
+              <div style="font-family: 'Barlow Condensed', sans-serif; font-weight: 700; font-size: 34px; line-height: 1;">{{ sel.tiro }}</div>
+            </div>
+          </div>
+
+          <div style="font-size: 12px; font-weight: 600; letter-spacing: .1em; color: #A79FB8; margin-top: 24px;">PROGRESIÓN</div>
+          <svg viewBox="0 0 400 200" style="width: 100%; height: auto; margin-top: 8px; display: block;">
+            <line x1="30" y1="20" x2="400" y2="20" stroke="#2D1B4E"></line>
+            <line x1="30" y1="70" x2="400" y2="70" stroke="#2D1B4E"></line>
+            <line x1="30" y1="120" x2="400" y2="120" stroke="#2D1B4E"></line>
+            <line x1="30" y1="170" x2="400" y2="170" stroke="#2D1B4E"></line>
+            <text x="0" y="24" fill="#6E6480" font-size="10" font-family="IBM Plex Mono">10</text>
+            <text x="0" y="124" fill="#6E6480" font-size="10" font-family="IBM Plex Mono">5</text>
+            <polyline points="50,130 120,112 190,96 260,74 330,60 390,48" fill="none" stroke="#C6FF00" stroke-width="3"></polyline>
+            <polyline points="50,146 120,138 190,120 260,110 330,96 390,88" fill="none" stroke="#7B2FF7" stroke-width="2"></polyline>
+            <polyline points="50,138 120,128 190,126 260,104 330,90 390,72" fill="none" stroke="#6E6480" stroke-width="2"></polyline>
+            <text x="40" y="192" fill="#6E6480" font-size="10" font-family="IBM Plex Mono">ABR</text>
+            <text x="180" y="192" fill="#6E6480" font-size="10" font-family="IBM Plex Mono">JUN</text>
+            <text x="320" y="192" fill="#6E6480" font-size="10" font-family="IBM Plex Mono">SEP</text>
+          </svg>
+          <div style="display: flex; gap: 16px; font-size: 12px; color: #A79FB8; margin-top: 8px;">
+            <span style="display: flex; align-items: center; gap: 6px;"><i style="width: 10px; height: 2px; background: #C6FF00; display: block;"></i>Pase</span>
+            <span style="display: flex; align-items: center; gap: 6px;"><i style="width: 10px; height: 2px; background: #7B2FF7; display: block;"></i>Recepción</span>
+            <span style="display: flex; align-items: center; gap: 6px;"><i style="width: 10px; height: 2px; background: #6E6480; display: block;"></i>Tiro</span>
+          </div>
+          <button onClick="{{ goFicha }}" style="width: 100%; height: 44px; margin-top: 24px; background: transparent; border: 1px solid #C6FF00; border-radius: 8px; color: #C6FF00; font-weight: 600; font-size: 14px; cursor: pointer;" style-hover="background:rgba(198,255,0,.1)">Ver ficha completa</button>
+        </aside>
+      </sc-if>
+    </div>
+
+    <sc-if value="{{ specs }}" hint-placeholder-val="{{ true }}"><div style="margin-top: 24px; border-top: 1px solid #2D1B4E; padding-top: 16px; display: flex; gap: 32px; flex-wrap: wrap; font-family: 'IBM Plex Mono', monospace; font-size: 11px; color: #A79FB8;">
+      <span>Fila 48px · padding 14/16 · thead #2D1B4E</span><span>Fila seleccionada: borde-izq 3px #C6FF00 + fondo #241443</span><span>Panel 380px · sticky top 88</span><span>Clic en fila = hx-get del detalle</span>
+    </div></sc-if>
+
+    <sc-if value="{{ modal }}" hint-placeholder-val="{{ false }}">
+      <div style="position: fixed; inset: 0; z-index: 60; background: rgba(9,4,16,.78); display: flex; align-items: center; justify-content: center; padding: 24px;">
+        <div style="width: 100%; max-width: 520px; background: #1E1033; border: 1px solid #2D1B4E; border-radius: 12px; padding: 32px; position: relative; overflow: hidden;">
+          <div style="position: absolute; top: 0; left: 0; right: 0; height: 4px; background: #C6FF00;"></div>
+          <div style="display: flex; justify-content: space-between; align-items: flex-start; gap: 16px;">
+            <div>
+              <div style="font-family: 'IBM Plex Mono', monospace; font-size: 11px; letter-spacing: .18em; color: #A79FB8;">05 / FORMULARIO</div>
+              <h2 style="font-family: 'Barlow Condensed', sans-serif; font-weight: 700; font-size: 30px; margin: 4px 0 0;">AGREGAR ALUMNO</h2>
+            </div>
+            <button onClick="{{ closeModal }}" style="width: 32px; height: 32px; background: transparent; border: 1px solid #2D1B4E; border-radius: 8px; color: #A79FB8; cursor: pointer;" style-hover="color:#F5F3FA">✕</button>
+          </div>
+
+          <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 16px; margin-top: 24px;">
+            <label style="display: flex; flex-direction: column; gap: 8px; grid-column: 1 / -1;">
+              <span style="font-size: 12px; font-weight: 600; letter-spacing: .1em; color: #A79FB8;">NOMBRE COMPLETO</span>
+              <input type="text" value="Diego Salinas Ruiz" style="height: 44px; padding: 0 12px; background: #12081F; border: 1px solid #2D1B4E; border-radius: 8px; color: #F5F3FA; font-size: 15px; outline: none;" style-focus="border-color:#C6FF00" />
+            </label>
+            <label style="display: flex; flex-direction: column; gap: 8px;">
+              <span style="font-size: 12px; font-weight: 600; letter-spacing: .1em; color: #A79FB8;">CATEGORÍA</span>
+              <select style="height: 44px; padding: 0 12px; background: #12081F; border: 1px solid #2D1B4E; border-radius: 8px; color: #F5F3FA; font-size: 15px; outline: none;" style-focus="border-color:#C6FF00">
+                <option>MENOR — Martes y Jueves</option>
+                <option>MINI — Lunes y Miércoles</option>
+                <option>MAYOR — Lunes y Miércoles</option>
+              </select>
+            </label>
+            <label style="display: flex; flex-direction: column; gap: 8px;">
+              <span style="font-size: 12px; font-weight: 600; letter-spacing: .1em; color: #A79FB8;">FECHA DE NACIMIENTO</span>
+              <input type="text" value="14/03/2017" style="height: 44px; padding: 0 12px; background: #12081F; border: 1px solid #2D1B4E; border-radius: 8px; color: #F5F3FA; font-size: 15px; outline: none;" style-focus="border-color:#C6FF00" />
+            </label>
+            <label style="display: flex; flex-direction: column; gap: 8px;">
+              <span style="font-size: 12px; font-weight: 600; letter-spacing: .1em; color: #A79FB8;">TUTOR</span>
+              <input type="text" value="Marisol Ruiz" style="height: 44px; padding: 0 12px; background: #12081F; border: 1px solid #2D1B4E; border-radius: 8px; color: #F5F3FA; font-size: 15px; outline: none;" style-focus="border-color:#C6FF00" />
+            </label>
+            <label style="display: flex; flex-direction: column; gap: 8px;">
+              <span style="font-size: 12px; font-weight: 600; letter-spacing: .1em; color: #FF4D6D;">TELÉFONO</span>
+              <input type="text" value="55 12 34" style="height: 44px; padding: 0 12px; background: #12081F; border: 1px solid #FF4D6D; border-radius: 8px; color: #F5F3FA; font-size: 15px; outline: none; box-shadow: 0 0 0 3px rgba(255,77,109,.16);" />
+              <span style="font-size: 12px; color: #FF4D6D;">Ingresa 10 dígitos. Formato: 55 1234 5678.</span>
+            </label>
+          </div>
+
+          <div style="display: flex; justify-content: flex-end; gap: 12px; margin-top: 32px;">
+            <button onClick="{{ closeModal }}" style="height: 44px; padding: 0 20px; background: transparent; border: 1px solid #2D1B4E; border-radius: 8px; color: #F5F3FA; font-weight: 600; font-size: 14px; cursor: pointer;" style-hover="border-color:#7B2FF7">Cancelar</button>
+            <button disabled="{{ true }}" style="height: 44px; padding: 0 24px; background: #2D1B4E; border: 0; border-radius: 8px; color: #6E6480; font-family: 'Barlow Condensed', sans-serif; font-style: italic; font-weight: 800; font-size: 18px; letter-spacing: .06em; cursor: not-allowed;">GUARDAR</button>
+          </div>
+          <div style="font-family: 'IBM Plex Mono', monospace; font-size: 11px; color: #6E6480; margin-top: 16px;">Disabled: #2D1B4E / texto #6E6480 · error borde #FF4D6D + ring 3px 16%</div>
+        </div>
+      </div>
+    </sc-if>
+  </section>
+  </sc-if>
+
+  <sc-if value="{{ isCaptura }}" hint-placeholder-val="{{ false }}">
+  <section style="max-width: 1440px; margin: 0 auto; padding: 32px 24px 64px;">
+    <div style="font-family: 'IBM Plex Mono', monospace; font-size: 11px; letter-spacing: .18em; color: #A79FB8;">06 / CAPTURA DE EVALUACIONES</div>
+    <h1 style="font-family: 'Barlow Condensed', sans-serif; font-weight: 700; font-size: 40px; margin: 4px 0 24px;">CAPTURA</h1>
+
+    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); gap: 32px; align-items: start;">
+
+      <div style="justify-self: center;">
+        <div style="font-family: 'IBM Plex Mono', monospace; font-size: 11px; color: #A79FB8; margin-bottom: 8px;">MÓVIL 390px — MOBILE FIRST</div>
+        <div style="width: 390px; max-width: 100%; height: 780px; background: #12081F; border: 1px solid #2D1B4E; border-radius: 12px; overflow: hidden; display: flex; flex-direction: column; position: relative;">
+          <div style="padding: 16px; border-bottom: 1px solid #2D1B4E; display: flex; flex-direction: column; gap: 12px;">
+            <div style="display: flex; align-items: center; justify-content: space-between;">
+              <div style="display: flex; align-items: baseline; gap: 4px; font-family: 'Barlow Condensed', sans-serif; font-style: italic; font-size: 18px; line-height: 1;"><span style="color: #C6FF00; font-weight: 800;">VIVA</span><span style="font-weight: 600;">SOCCER</span></div>
+              <div style="width: 28px; height: 28px; border-radius: 999px; background: #7B2FF7; display: flex; align-items: center; justify-content: center; font-size: 11px; font-weight: 700;">LM</div>
+            </div>
+            <div style="display: flex; gap: 8px;">
+              <select style="flex: 1; height: 44px; padding: 0 12px; background: #1E1033; border: 1px solid #2D1B4E; border-radius: 8px; color: #F5F3FA; font-size: 14px;">
+                <option>MENOR · Mar y Jue</option>
+                <option>MINI · Lun y Mié</option>
+              </select>
+              <input type="text" value="08/09/26" style="width: 110px; height: 44px; padding: 0 12px; background: #1E1033; border: 1px solid #2D1B4E; border-radius: 8px; color: #F5F3FA; font-size: 14px;" />
+            </div>
+            <div>
+              <div style="display: flex; justify-content: space-between; font-size: 12px; color: #A79FB8; margin-bottom: 4px;"><span>Capturados</span><span style="font-family: 'IBM Plex Mono', monospace; color: #C6FF00;">{{ progresoTxt }}</span></div>
+              <div style="height: 6px; background: #2D1B4E; border-radius: 999px; overflow: hidden;"><div style="height: 6px; background: #C6FF00; border-radius: 999px; width: {{ progresoPct }};"></div></div>
+            </div>
+          </div>
+
+          <div style="flex: 1; overflow-y: auto; padding: 12px 16px 96px; display: flex; flex-direction: column; gap: 12px;">
+            <sc-for list="{{ captura }}" as="a" hint-placeholder-count="6">
+              <div style="{{ a.cardStyle }}">
+                <div style="display: flex; align-items: center; justify-content: space-between; gap: 8px;">
+                  <div style="font-family: 'Barlow Condensed', sans-serif; font-weight: 700; font-size: 20px; line-height: 1.1;">{{ a.nombre }}</div>
+                  <div style="font-family: 'IBM Plex Mono', monospace; font-size: 11px; color: #A79FB8;">{{ a.id }}</div>
+                </div>
+                <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; margin-top: 12px;">
+                  <label style="display: flex; flex-direction: column; gap: 4px;">
+                    <span style="font-size: 10px; letter-spacing: .12em; color: #A79FB8;">PASE</span>
+                    <input type="number" inputMode="numeric" min="1" max="10" value="{{ a.pase }}" onChange="{{ a.setPase }}" style="height: 56px; text-align: center; background: #12081F; border: 1px solid #2D1B4E; border-radius: 8px; color: #F5F3FA; font-family: 'Barlow Condensed', sans-serif; font-weight: 700; font-size: 28px; outline: none;" style-focus="border-color:#C6FF00; box-shadow:0 0 0 3px rgba(198,255,0,.2)" />
+                  </label>
+                  <label style="display: flex; flex-direction: column; gap: 4px;">
+                    <span style="font-size: 10px; letter-spacing: .12em; color: #A79FB8;">RECEP.</span>
+                    <input type="number" inputMode="numeric" min="1" max="10" value="{{ a.recep }}" onChange="{{ a.setRecep }}" style="height: 56px; text-align: center; background: #12081F; border: 1px solid #2D1B4E; border-radius: 8px; color: #F5F3FA; font-family: 'Barlow Condensed', sans-serif; font-weight: 700; font-size: 28px; outline: none;" style-focus="border-color:#C6FF00; box-shadow:0 0 0 3px rgba(198,255,0,.2)" />
+                  </label>
+                  <label style="display: flex; flex-direction: column; gap: 4px;">
+                    <span style="font-size: 10px; letter-spacing: .12em; color: #A79FB8;">TIRO</span>
+                    <input type="number" inputMode="numeric" min="1" max="10" value="{{ a.tiro }}" onChange="{{ a.setTiro }}" style="height: 56px; text-align: center; background: #12081F; border: 1px solid #2D1B4E; border-radius: 8px; color: #F5F3FA; font-family: 'Barlow Condensed', sans-serif; font-weight: 700; font-size: 28px; outline: none;" style-focus="border-color:#C6FF00; box-shadow:0 0 0 3px rgba(198,255,0,.2)" />
+                  </label>
+                </div>
+              </div>
+            </sc-for>
+          </div>
+
+          <div style="position: absolute; bottom: 0; left: 0; right: 0; padding: 12px 16px 16px; background: linear-gradient(to top, #12081F 60%, rgba(18,8,31,0)); border-top: 1px solid #2D1B4E;">
+            <button onClick="{{ save }}" style="{{ saveStyle }}">{{ saveLabel }}</button>
+          </div>
+        </div>
+      </div>
+
+      <div style="min-width: 0;">
+        <div style="font-family: 'IBM Plex Mono', monospace; font-size: 11px; color: #A79FB8; margin-bottom: 8px;">ESCRITORIO ≥1024px — TABLA EDITABLE, TAB</div>
+        <div style="background: #1E1033; border: 1px solid #2D1B4E; border-radius: 12px; overflow: hidden;">
+          <div style="padding: 16px; display: flex; gap: 8px; flex-wrap: wrap; align-items: center; border-bottom: 1px solid #2D1B4E;">
+            <select style="height: 40px; padding: 0 12px; background: #12081F; border: 1px solid #2D1B4E; border-radius: 8px; color: #F5F3FA; font-size: 14px;"><option>MENOR · Martes y Jueves</option></select>
+            <input type="text" value="08/09/2026" style="height: 40px; width: 130px; padding: 0 12px; background: #12081F; border: 1px solid #2D1B4E; border-radius: 8px; color: #F5F3FA; font-size: 14px;" />
+            <div style="flex: 1;"></div>
+            <div style="font-family: 'IBM Plex Mono', monospace; font-size: 12px; color: #A79FB8;">{{ progresoTxt }}</div>
+          </div>
+          <div style="overflow-x: auto;">
+            <table style="width: 100%; border-collapse: collapse; min-width: 560px;">
+              <thead>
+                <tr style="background: #2D1B4E;">
+                  <th style="text-align: left; padding: 10px 16px; font-size: 11px; letter-spacing: .12em; color: #A79FB8; font-weight: 600;">ALUMNO</th>
+                  <th style="width: 96px; padding: 10px 8px; font-size: 11px; letter-spacing: .12em; color: #A79FB8; font-weight: 600;">PASE</th>
+                  <th style="width: 96px; padding: 10px 8px; font-size: 11px; letter-spacing: .12em; color: #A79FB8; font-weight: 600;">RECEP.</th>
+                  <th style="width: 96px; padding: 10px 8px; font-size: 11px; letter-spacing: .12em; color: #A79FB8; font-weight: 600;">TIRO</th>
+                </tr>
+              </thead>
+              <tbody>
+                <sc-for list="{{ captura }}" as="a" hint-placeholder-count="6">
+                  <tr style="border-bottom: 1px solid #2D1B4E;">
+                    <td style="padding: 8px 16px; font-size: 14px; font-weight: 600;">{{ a.nombre }}</td>
+                    <td style="padding: 8px;"><input type="number" value="{{ a.pase }}" onChange="{{ a.setPase }}" style="width: 100%; height: 40px; text-align: center; background: #12081F; border: 1px solid #2D1B4E; border-radius: 8px; color: #F5F3FA; font-family: 'Barlow Condensed', sans-serif; font-weight: 700; font-size: 20px; outline: none;" style-focus="border-color:#C6FF00; box-shadow:0 0 0 3px rgba(198,255,0,.2)" /></td>
+                    <td style="padding: 8px;"><input type="number" value="{{ a.recep }}" onChange="{{ a.setRecep }}" style="width: 100%; height: 40px; text-align: center; background: #12081F; border: 1px solid #2D1B4E; border-radius: 8px; color: #F5F3FA; font-family: 'Barlow Condensed', sans-serif; font-weight: 700; font-size: 20px; outline: none;" style-focus="border-color:#C6FF00; box-shadow:0 0 0 3px rgba(198,255,0,.2)" /></td>
+                    <td style="padding: 8px;"><input type="number" value="{{ a.tiro }}" onChange="{{ a.setTiro }}" style="width: 100%; height: 40px; text-align: center; background: #12081F; border: 1px solid #2D1B4E; border-radius: 8px; color: #F5F3FA; font-family: 'Barlow Condensed', sans-serif; font-weight: 700; font-size: 20px; outline: none;" style-focus="border-color:#C6FF00; box-shadow:0 0 0 3px rgba(198,255,0,.2)" /></td>
+                  </tr>
+                </sc-for>
+              </tbody>
+            </table>
+          </div>
+          <div style="padding: 16px; display: flex; justify-content: flex-end; gap: 12px; border-top: 1px solid #2D1B4E;">
+            <button style="height: 44px; padding: 0 20px; background: transparent; border: 1px solid #2D1B4E; border-radius: 8px; color: #F5F3FA; font-weight: 600; font-size: 14px; cursor: pointer;" style-hover="border-color:#7B2FF7">Descartar</button>
+            <button onClick="{{ save }}" style="height: 44px; padding: 0 24px; background: #C6FF00; border: 0; border-radius: 8px; color: #12081F; font-family: 'Barlow Condensed', sans-serif; font-style: italic; font-weight: 800; font-size: 18px; letter-spacing: .06em; cursor: pointer;" style-hover="background:#D8FF3D">GUARDAR SESIÓN</button>
+          </div>
+        </div>
+
+        <div style="margin-top: 24px; background: #1E1033; border: 1px solid #2D1B4E; border-radius: 12px; padding: 24px;">
+          <div style="font-family: 'Barlow Condensed', sans-serif; font-weight: 700; font-size: 20px;">ESTADOS HTMX</div>
+          <div style="display: flex; gap: 12px; flex-wrap: wrap; margin-top: 16px;">
+            <button style="height: 40px; padding: 0 16px; background: #C6FF00; border: 0; border-radius: 8px; color: #12081F; font-weight: 700; font-size: 14px;">Default</button>
+            <button style="height: 40px; padding: 0 16px; background: #D8FF3D; border: 0; border-radius: 8px; color: #12081F; font-weight: 700; font-size: 14px;">Hover</button>
+            <button style="height: 40px; padding: 0 16px; background: #C6FF00; border: 0; border-radius: 8px; color: #12081F; font-weight: 700; font-size: 14px; box-shadow: 0 0 0 3px rgba(198,255,0,.35);">Focus ring</button>
+            <button style="height: 40px; padding: 0 16px; background: #2D1B4E; border: 0; border-radius: 8px; color: #6E6480; font-weight: 700; font-size: 14px;">Disabled</button>
+            <button style="height: 40px; padding: 0 16px; background: #C6FF00; border: 0; border-radius: 8px; color: #12081F; font-weight: 700; font-size: 14px; animation: htmxpulse 1.2s infinite;">Loading (hx-indicator)</button>
+          </div>
+          <div style="font-family: 'IBM Plex Mono', monospace; font-size: 11px; color: #6E6480; margin-top: 16px; line-height: 1.7;">Inputs móvil 56px alto · target táctil ≥ 44px<br />hx-post por tarjeta con hx-trigger="change delay:400ms"<br />Botón fijo abajo: 52px + gradiente #12081F</div>
+        </div>
+      </div>
+    </div>
+  </section>
+  </sc-if>
+
+  <sc-if value="{{ isFicha }}" hint-placeholder-val="{{ false }}">
+  <section style="max-width: 1440px; margin: 0 auto; padding: 32px 24px 64px;">
+    <div style="font-family: 'IBM Plex Mono', monospace; font-size: 11px; letter-spacing: .18em; color: #A79FB8;">07 / FICHA DE ALUMNO</div>
+
+    <div style="position: relative; overflow: hidden; margin-top: 8px; background: #1E1033; border: 1px solid #2D1B4E; border-radius: 12px; padding: 32px;">
+      <div style="position: absolute; top: -40px; right: -60px; width: 220px; height: 260px; background: #2D1B4E; transform: skewX(-14deg);"></div>
+      <div style="position: relative; display: flex; gap: 32px; flex-wrap: wrap; align-items: flex-end; justify-content: space-between;">
+        <div>
+          <div style="font-family: 'IBM Plex Mono', monospace; font-size: 12px; color: #A79FB8;">{{ ficha.id }}</div>
+          <h1 style="font-family: 'Barlow Condensed', sans-serif; font-weight: 700; font-size: 52px; margin: 4px 0 8px; line-height: 1;">{{ ficha.nombre }}</h1>
+          <div style="display: flex; gap: 16px; flex-wrap: wrap; font-size: 14px; color: #A79FB8;">
+            <span>{{ ficha.cat }}</span><span>{{ ficha.horario }}</span><span>Nac. {{ ficha.nac }}</span><span>Tutor: {{ ficha.tutor }}</span><span>{{ ficha.tel }}</span>
+          </div>
+        </div>
+        <div style="display: flex; gap: 8px;">
+          <div style="background: #12081F; border: 1px solid #2D1B4E; border-radius: 8px; padding: 12px 16px; min-width: 88px;">
+            <div style="font-size: 10px; letter-spacing: .12em; color: #A79FB8;">PROMEDIO</div>
+            <div style="font-family: 'Barlow Condensed', sans-serif; font-weight: 700; font-size: 40px; line-height: 1; color: #C6FF00;">8.1</div>
+          </div>
+          <div style="background: #12081F; border: 1px solid #2D1B4E; border-radius: 8px; padding: 12px 16px; min-width: 88px;">
+            <div style="font-size: 10px; letter-spacing: .12em; color: #A79FB8;">CATEGORÍA</div>
+            <div style="font-family: 'Barlow Condensed', sans-serif; font-weight: 700; font-size: 40px; line-height: 1;">7.3</div>
+          </div>
+          <div style="background: #12081F; border: 1px solid #2D1B4E; border-radius: 8px; padding: 12px 16px; min-width: 88px;">
+            <div style="font-size: 10px; letter-spacing: .12em; color: #A79FB8;">DIFERENCIA</div>
+            <div style="font-family: 'Barlow Condensed', sans-serif; font-weight: 700; font-size: 40px; line-height: 1; color: #3DDC91;">+0.8</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(340px, 1fr)); gap: 24px; margin-top: 24px; align-items: start;">
+      <div style="background: #1E1033; border: 1px solid #2D1B4E; border-radius: 12px; padding: 24px;">
+        <div style="display: flex; justify-content: space-between; flex-wrap: wrap; gap: 12px; align-items: center;">
+          <h2 style="font-family: 'Barlow Condensed', sans-serif; font-weight: 700; font-size: 24px; margin: 0;">PROGRESIÓN HISTÓRICA</h2>
+          <div style="display: flex; gap: 16px; font-size: 12px; color: #A79FB8;">
+            <span style="display: flex; align-items: center; gap: 6px;"><i style="width: 12px; height: 3px; background: #C6FF00; display: block;"></i>Pase</span>
+            <span style="display: flex; align-items: center; gap: 6px;"><i style="width: 12px; height: 2px; background: #7B2FF7; display: block;"></i>Recepción</span>
+            <span style="display: flex; align-items: center; gap: 6px;"><i style="width: 12px; height: 2px; background: #6E6480; display: block;"></i>Tiro</span>
+          </div>
+        </div>
+        <svg viewBox="0 0 640 300" style="width: 100%; height: auto; margin-top: 16px; display: block;">
+          <line x1="34" y1="20" x2="640" y2="20" stroke="#2D1B4E"></line>
+          <line x1="34" y1="90" x2="640" y2="90" stroke="#2D1B4E"></line>
+          <line x1="34" y1="160" x2="640" y2="160" stroke="#2D1B4E"></line>
+          <line x1="34" y1="230" x2="640" y2="230" stroke="#2D1B4E"></line>
+          <text x="0" y="24" fill="#6E6480" font-size="11" font-family="IBM Plex Mono">10</text>
+          <text x="0" y="94" fill="#6E6480" font-size="11" font-family="IBM Plex Mono">7.5</text>
+          <text x="0" y="164" fill="#6E6480" font-size="11" font-family="IBM Plex Mono">5</text>
+          <text x="0" y="234" fill="#6E6480" font-size="11" font-family="IBM Plex Mono">2.5</text>
+          <polyline points="60,176 150,148 240,120 330,104 420,76 510,62 600,48" fill="none" stroke="#C6FF00" stroke-width="3"></polyline>
+          <circle cx="600" cy="48" r="5" fill="#C6FF00"></circle>
+          <polyline points="60,196 150,182 240,160 330,146 420,128 510,112 600,104" fill="none" stroke="#7B2FF7" stroke-width="2"></polyline>
+          <polyline points="60,188 150,170 240,166 330,132 420,118 510,104 600,84" fill="none" stroke="#6E6480" stroke-width="2"></polyline>
+          <text x="46" y="260" fill="#6E6480" font-size="11" font-family="IBM Plex Mono">10 ABR</text>
+          <text x="220" y="260" fill="#6E6480" font-size="11" font-family="IBM Plex Mono">05 JUN</text>
+          <text x="400" y="260" fill="#6E6480" font-size="11" font-family="IBM Plex Mono">31 JUL</text>
+          <text x="565" y="260" fill="#6E6480" font-size="11" font-family="IBM Plex Mono">08 SEP</text>
+        </svg>
+      </div>
+
+      <div style="background: #1E1033; border: 1px solid #2D1B4E; border-radius: 12px; overflow: hidden;">
+        <h2 style="font-family: 'Barlow Condensed', sans-serif; font-weight: 700; font-size: 24px; margin: 0; padding: 24px 24px 16px;">EVALUACIONES</h2>
+        <div style="overflow-x: auto;">
+          <table style="width: 100%; border-collapse: collapse; min-width: 420px;">
+            <thead>
+              <tr style="background: #2D1B4E;">
+                <th style="text-align: left; padding: 10px 24px; font-size: 11px; letter-spacing: .12em; color: #A79FB8; font-weight: 600;">FECHA</th>
+                <th style="padding: 10px; font-size: 11px; letter-spacing: .12em; color: #A79FB8; font-weight: 600;">PASE</th>
+                <th style="padding: 10px; font-size: 11px; letter-spacing: .12em; color: #A79FB8; font-weight: 600;">RECEP.</th>
+                <th style="padding: 10px; font-size: 11px; letter-spacing: .12em; color: #A79FB8; font-weight: 600;">TIRO</th>
+                <th style="padding: 10px 24px; font-size: 11px; letter-spacing: .12em; color: #A79FB8; font-weight: 600;">PROM.</th>
+              </tr>
+            </thead>
+            <tbody>
+              <sc-for list="{{ evals }}" as="e" hint-placeholder-count="7">
+                <tr style="border-bottom: 1px solid #2D1B4E;">
+                  <td style="padding: 12px 24px; font-family: 'IBM Plex Mono', monospace; font-size: 12px; color: #A79FB8;">{{ e.fecha }}</td>
+                  <td style="padding: 12px 10px; text-align: center; font-family: 'Barlow Condensed', sans-serif; font-weight: 700; font-size: 20px;">{{ e.pase }}</td>
+                  <td style="padding: 12px 10px; text-align: center; font-family: 'Barlow Condensed', sans-serif; font-weight: 700; font-size: 20px;">{{ e.recep }}</td>
+                  <td style="padding: 12px 10px; text-align: center; font-family: 'Barlow Condensed', sans-serif; font-weight: 700; font-size: 20px;">{{ e.tiro }}</td>
+                  <td style="padding: 12px 24px; text-align: center; font-family: 'Barlow Condensed', sans-serif; font-weight: 700; font-size: 20px; color: #C6FF00;">{{ e.prom }}</td>
+                </tr>
+              </sc-for>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <sc-if value="{{ specs }}" hint-placeholder-val="{{ true }}"><div style="margin-top: 24px; border-top: 1px solid #2D1B4E; padding-top: 16px; display: flex; gap: 32px; flex-wrap: wrap; font-family: 'IBM Plex Mono', monospace; font-size: 11px; color: #A79FB8;">
+      <span>Nombre: Condensed 700 · 52px</span><span>Métricas: 40px · caja 12/16 padding</span><span>Serie principal 3px #C6FF00, resto 2px</span><span>Encabezado impreso: logo 24px + fecha</span>
+    </div></sc-if>
+  </section>
+  </sc-if>
+
+  <sc-if value="{{ isTokens }}" hint-placeholder-val="{{ false }}">
+  <section style="max-width: 1440px; margin: 0 auto; padding: 32px 24px 80px;">
+    <div style="font-family: 'IBM Plex Mono', monospace; font-size: 11px; letter-spacing: .18em; color: #A79FB8;">08 / DESIGN TOKENS</div>
+    <h1 style="font-family: 'Barlow Condensed', sans-serif; font-weight: 700; font-size: 40px; margin: 4px 0 24px;">TOKENS</h1>
+
+    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 16px;">
+      <sc-for list="{{ tokens }}" as="t" hint-placeholder-count="9">
+        <div style="background: #1E1033; border: 1px solid #2D1B4E; border-radius: 12px; overflow: hidden;">
+          <div style="height: 72px; background: {{ t.hex }};"></div>
+          <div style="padding: 16px;">
+            <div style="font-family: 'IBM Plex Mono', monospace; font-size: 13px; color: #F5F3FA;">{{ t.name }}</div>
+            <div style="font-family: 'IBM Plex Mono', monospace; font-size: 12px; color: #A79FB8; margin-top: 4px;">{{ t.hex }}</div>
+            <div style="font-size: 13px; color: #A79FB8; margin-top: 8px; line-height: 1.5;">{{ t.uso }}</div>
+          </div>
+        </div>
+      </sc-for>
+    </div>
+
+    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 24px; margin-top: 24px;">
+      <div style="background: #1E1033; border: 1px solid #2D1B4E; border-radius: 12px; padding: 24px;">
+        <h2 style="font-family: 'Barlow Condensed', sans-serif; font-weight: 700; font-size: 22px; margin: 0 0 16px;">TIPOGRAFÍA</h2>
+        <div style="display: flex; flex-direction: column; gap: 12px; font-size: 14px; color: #A79FB8;">
+          <div><span style="color: #F5F3FA; font-weight: 600;">Display / títulos</span> — Barlow Condensed 700, itálica en marca y botones. 52 / 40 / 34 / 24 / 20px. tracking .01em</div>
+          <div><span style="color: #F5F3FA; font-weight: 600;">Números y calificaciones</span> — Barlow Condensed 700. 64 / 40 / 34 / 28 / 20px</div>
+          <div><span style="color: #F5F3FA; font-weight: 600;">Datos y tablas</span> — Barlow 400/500/600. 16 / 15 / 14 / 13px. line-height 1.5</div>
+          <div><span style="color: #F5F3FA; font-weight: 600;">Etiquetas</span> — Barlow 600, 12px, tracking .1em, mayúsculas, color text-muted</div>
+          <div><span style="color: #F5F3FA; font-weight: 600;">Mono</span> — IBM Plex Mono 400, 11–12px, IDs, fechas, teléfonos</div>
+        </div>
+      </div>
+      <div style="background: #1E1033; border: 1px solid #2D1B4E; border-radius: 12px; padding: 24px;">
+        <h2 style="font-family: 'Barlow Condensed', sans-serif; font-weight: 700; font-size: 22px; margin: 0 0 16px;">ESPACIADO, RADIOS Y BREAKPOINTS</h2>
+        <div style="display: flex; flex-direction: column; gap: 12px; font-size: 14px; color: #A79FB8;">
+          <div><span style="color: #F5F3FA; font-weight: 600;">Escala</span> — 4 / 8 / 12 / 16 / 24 / 32px (Tailwind 1, 2, 3, 4, 6, 8)</div>
+          <div><span style="color: #F5F3FA; font-weight: 600;">Radios</span> — 8px controles (rounded-lg), 12px tarjetas (rounded-xl), 999px avatares</div>
+          <div><span style="color: #F5F3FA; font-weight: 600;">Alturas</span> — input 44px, input móvil de captura 56px, botón primario 52px, fila de tabla 48px</div>
+          <div><span style="color: #F5F3FA; font-weight: 600;">Breakpoints</span> — 640 (sm) apilado, 1024 (lg) tabla editable y panel lateral, 1440 (2xl) contenedor máximo</div>
+          <div><span style="color: #F5F3FA; font-weight: 600;">Focus</span> — borde accent + ring 3px rgba(198,255,0,.18)</div>
+          <div><span style="color: #F5F3FA; font-weight: 600;">Ángulos</span> — skewX(-14deg) en barras y fondos; -18deg en el subrayado de marca</div>
+        </div>
+      </div>
+    </div>
+
+    <div style="background: #1E1033; border: 1px solid #2D1B4E; border-radius: 12px; padding: 24px; margin-top: 24px;">
+      <h2 style="font-family: 'Barlow Condensed', sans-serif; font-weight: 700; font-size: 22px; margin: 0 0 16px;">CONTRASTE Y USO DEL NEÓN</h2>
+      <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 16px; font-size: 14px; color: #A79FB8; line-height: 1.6;">
+        <div>text-primary #F5F3FA sobre bg-surface #1E1033 = 14.6:1. Cumple AA y AAA.</div>
+        <div>text-muted #A79FB8 sobre #1E1033 = 6.4:1. Cumple AA para cuerpo.</div>
+        <div>accent #C6FF00 sobre #12081F = 15.9:1, pero se reserva a cifras, una serie de gráfica, borde de fila activa y botón primario.</div>
+        <div>Botón primario: texto #12081F sobre #C6FF00 = 15.9:1. Nunca texto blanco sobre neón.</div>
+        <div>accent-secondary #7B2FF7 solo como relleno, borde o avatar. Texto blanco sobre él a 20px+ o en negritas.</div>
+        <div>Máximo tres elementos neón por pantalla.</div>
+      </div>
+    </div>
+  </section>
+  </sc-if>
+
+</div>
+
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props="{&quot;density&quot;:{&quot;editor&quot;:&quot;enum&quot;,&quot;default&quot;:&quot;comoda&quot;,&quot;options&quot;:[&quot;comoda&quot;,&quot;compacta&quot;],&quot;tsType&quot;:&quot;string&quot;,&quot;section&quot;:&quot;Tablas&quot;},&quot;showSpecs&quot;:{&quot;editor&quot;:&quot;boolean&quot;,&quot;default&quot;:true,&quot;tsType&quot;:&quot;boolean&quot;,&quot;section&quot;:&quot;Entregable&quot;}}">
+const ALUMNOS = [
+  { id: "VS-0142", nombre: "Diego Salinas Ruiz", cat: "MENOR", horario: "Martes y Jueves", nac: "14/03/2017", tutor: "Marisol Ruiz", tel: "55 1234 5678", pase: 8.4, recep: 7.9, tiro: 8.1 },
+  { id: "VS-0138", nombre: "Renata Ocampo Vela", cat: "MINI", horario: "Lunes y Miércoles", nac: "02/09/2019", tutor: "Hugo Ocampo", tel: "55 8871 2210", pase: 7.2, recep: 7.8, tiro: 6.9 },
+  { id: "VS-0131", nombre: "Emiliano Cortés Nava", cat: "MAYOR", horario: "Lunes y Miércoles", nac: "27/11/2013", tutor: "Ana Nava", tel: "55 4402 9931", pase: 9.1, recep: 8.6, tiro: 9.4 },
+  { id: "VS-0127", nombre: "Ximena Beltrán Ríos", cat: "MENOR", horario: "Lunes y Miércoles", nac: "08/05/2016", tutor: "Paola Ríos", tel: "55 3390 1188", pase: 7.7, recep: 8.2, tiro: 7.4 },
+  { id: "VS-0120", nombre: "Santiago Muñoz Lara", cat: "MAYOR", horario: "Martes y Jueves", nac: "19/01/2014", tutor: "Jorge Muñoz", tel: "55 9912 4470", pase: 8.8, recep: 8.0, tiro: 8.9 },
+  { id: "VS-0114", nombre: "Camila Herrera Sosa", cat: "MINI", horario: "Martes y Jueves", nac: "30/06/2020", tutor: "Lucía Sosa", tel: "55 7761 3325", pase: 6.8, recep: 7.1, tiro: 6.4 },
+  { id: "VS-0109", nombre: "Mateo Fuentes Aguilar", cat: "MENOR", horario: "Martes y Jueves", nac: "11/10/2016", tutor: "Iván Fuentes", tel: "55 5540 8802", pase: 8.0, recep: 7.5, tiro: 8.3 },
+  { id: "VS-0103", nombre: "Regina Palacios Cruz", cat: "MAYOR", horario: "Lunes y Miércoles", nac: "23/02/2013", tutor: "Sofía Cruz", tel: "55 2218 6693", pase: 8.5, recep: 9.0, tiro: 8.2 }
+];
+
+const CATS = ["TODOS", "MINI · Lun y Mié", "MINI · Mar y Jue", "MENOR · Lun y Mié", "MENOR · Mar y Jue", "MAYOR · Lun y Mié", "MAYOR · Mar y Jue"];
+
+const SCREENS = [
+  ["marca", "MARCA"], ["login", "LOGIN"], ["dash", "DASHBOARD"], ["padron", "PADRÓN"],
+  ["captura", "CAPTURA"], ["ficha", "FICHA"], ["tokens", "TOKENS"]
+];
+
+class Component extends DCLogic {
+  state = { screen: "marca", q: "", cat: "TODOS", sel: "VS-0142", modal: false, scores: { "VS-0142": { pase: 8, recep: 7, tiro: 9 }, "VS-0127": { pase: 8, recep: 8, tiro: 7 } }, saving: false };
+
+  set(k, v) { this.setState({ [k]: v }); }
+
+  filtered() {
+    const q = this.state.q.trim().toLowerCase();
+    return ALUMNOS.filter(a => {
+      if (q && a.nombre.toLowerCase().indexOf(q) === -1) return false;
+      if (this.state.cat === "TODOS") return true;
+      const [c, h] = this.state.cat.split(" · ");
+      const hh = h === "Lun y Mié" ? "Lunes y Miércoles" : "Martes y Jueves";
+      return a.cat === c && a.horario === hh;
+    });
+  }
+
+  renderVals() {
+    const s = this.state;
+    const tabBase = "height:34px; padding:0 14px; background:transparent; border:0; border-radius:8px; font-family:'Barlow Condensed',sans-serif; font-weight:700; font-size:15px; letter-spacing:.06em; cursor:pointer; ";
+    const tabs = SCREENS.map(([k, label]) => ({
+      label, go: () => this.set("screen", k),
+      style: tabBase + (s.screen === k ? "background:#2D1B4E; color:#C6FF00;" : "color:#A79FB8;")
+    }));
+
+    const chipBase = "height:44px; padding:0 14px; border-radius:8px; font-size:13px; font-weight:600; cursor:pointer; ";
+    const chips = CATS.map(c => ({
+      label: c, go: () => this.setState({ cat: c, sel: null }),
+      style: chipBase + (s.cat === c
+        ? "background:#7B2FF7; border:1px solid #7B2FF7; color:#F5F3FA;"
+        : "background:#1E1033; border:1px solid #2D1B4E; color:#A79FB8;")
+    }));
+
+    const list = this.filtered();
+    const catTint = { MINI: "#7B2FF7", MENOR: "#2D1B4E", MAYOR: "#2D1B4E" };
+    const compact = (this.props.density ?? "comoda") === "compacta";
+    const rows = list.map(a => ({
+      ...a,
+      select: () => this.set("sel", a.id),
+      style: "cursor:pointer; border-bottom:1px solid #2D1B4E; line-height:" + (compact ? "1.2" : "1.6") +
+        "; border-left:3px solid " +
+        (s.sel === a.id ? "#C6FF00; background:#241443;" : "transparent;"),
+      catStyle: "display:inline-block; padding:3px 10px; border-radius:999px; font-size:11px; font-weight:700; letter-spacing:.08em; background:" +
+        catTint[a.cat] + "; color:#F5F3FA;"
+    }));
+
+    const sel = ALUMNOS.find(a => a.id === s.sel) || null;
+    const grupo = ALUMNOS.filter(a => a.cat === "MENOR").concat(ALUMNOS.filter(a => a.cat !== "MENOR")).slice(0, 6);
+    const captura = grupo.map(a => {
+      const sc = s.scores[a.id] || {};
+      const done = sc.pase && sc.recep && sc.tiro;
+      const put = (k) => (e) => {
+        const v = e.target.value;
+        this.setState(st => ({ scores: { ...st.scores, [a.id]: { ...(st.scores[a.id] || {}), [k]: v } } }));
+      };
+      return {
+        id: a.id, nombre: a.nombre,
+        pase: sc.pase || "", recep: sc.recep || "", tiro: sc.tiro || "",
+        setPase: put("pase"), setRecep: put("recep"), setTiro: put("tiro"),
+        cardStyle: "background:#1E1033; border-radius:12px; padding:16px; border:1px solid " +
+          (done ? "#C6FF00;" : "#2D1B4E;")
+      };
+    });
+    const hechos = captura.filter(a => a.pase && a.recep && a.tiro).length;
+
+    const evals = [
+      { fecha: "08/09/2026", pase: 8.4, recep: 7.9, tiro: 8.1, prom: 8.1 },
+      { fecha: "27/08/2026", pase: 8.1, recep: 7.6, tiro: 8.0, prom: 7.9 },
+      { fecha: "31/07/2026", pase: 7.8, recep: 7.4, tiro: 7.7, prom: 7.6 },
+      { fecha: "26/06/2026", pase: 7.4, recep: 7.0, tiro: 7.2, prom: 7.2 },
+      { fecha: "05/06/2026", pase: 7.0, recep: 6.7, tiro: 6.8, prom: 6.8 },
+      { fecha: "08/05/2026", pase: 6.6, recep: 6.3, tiro: 6.5, prom: 6.5 },
+      { fecha: "10/04/2026", pase: 6.1, recep: 5.8, tiro: 6.0, prom: 6.0 }
+    ];
+
+    return {
+      tabs, chips, rows, q: s.q, modal: s.modal,
+      specs: this.props.showSpecs ?? true,
+      isMarca: s.screen === "marca", isLogin: s.screen === "login", isDash: s.screen === "dash",
+      isPadron: s.screen === "padron", isCaptura: s.screen === "captura", isFicha: s.screen === "ficha",
+      isTokens: s.screen === "tokens",
+      onSearch: (e) => this.set("q", e.target.value),
+      clearFilters: () => this.setState({ q: "", cat: "TODOS" }),
+      openModal: () => this.set("modal", true),
+      closeModal: () => this.set("modal", false),
+      goPadron: () => this.set("screen", "padron"),
+      goFicha: () => this.set("screen", "ficha"),
+      clearSel: () => this.set("sel", null),
+      noop: (e) => e.preventDefault(),
+      vacio: list.length === 0,
+      conteo: list.length + " de " + ALUMNOS.length + " alumnos · página 1 de 3",
+      hasSel: !!sel,
+      sel: sel || {},
+      padronCols: sel ? "minmax(0,1fr) 380px" : "minmax(0,1fr)",
+      captura,
+      progresoTxt: hechos + " / " + captura.length,
+      progresoPct: Math.round((hechos / captura.length) * 100) + "%",
+      save: () => {
+        this.set("saving", true);
+        setTimeout(() => this.set("saving", false), 1400);
+      },
+      saveLabel: s.saving ? "GUARDANDO…" : "GUARDAR " + captura.length + " EVALUACIONES",
+      saveStyle: "width:100%; height:52px; border:0; border-radius:8px; font-family:'Barlow Condensed',sans-serif; font-style:italic; font-weight:800; font-size:20px; letter-spacing:.06em; cursor:pointer; background:#C6FF00; color:#12081F;" +
+        (s.saving ? " animation:htmxpulse 1.2s infinite;" : ""),
+      ficha: sel || ALUMNOS[0],
+      evals,
+      progreso: [
+        { ini: "EC", nombre: "Emiliano Cortés Nava", cat: "MAYOR", horario: "Lun y Mié", delta: "+1.8" },
+        { ini: "RP", nombre: "Regina Palacios Cruz", cat: "MAYOR", horario: "Lun y Mié", delta: "+1.5" },
+        { ini: "DS", nombre: "Diego Salinas Ruiz", cat: "MENOR", horario: "Mar y Jue", delta: "+1.2" },
+        { ini: "CH", nombre: "Camila Herrera Sosa", cat: "MINI", horario: "Mar y Jue", delta: "+1.1" },
+        { ini: "XB", nombre: "Ximena Beltrán Ríos", cat: "MENOR", horario: "Lun y Mié", delta: "+0.9" }
+      ],
+      tokens: [
+        { name: "bg-base", hex: "#12081F", uso: "Fondo de aplicación e inputs sobre superficie." },
+        { name: "bg-surface", hex: "#1E1033", uso: "Tarjetas, tablas, modales, barra de navegación." },
+        { name: "border", hex: "#2D1B4E", uso: "Bordes, encabezado de tabla, divisores, elevación." },
+        { name: "accent", hex: "#C6FF00", uso: "Botón primario, cifra clave, fila activa, serie principal. Máx. 3 por pantalla." },
+        { name: "accent-secondary", hex: "#7B2FF7", uso: "Filtro activo, avatares, barras y segunda serie." },
+        { name: "text-primary", hex: "#F5F3FA", uso: "Títulos, nombres, calificaciones." },
+        { name: "text-muted", hex: "#A79FB8", uso: "Etiquetas, metadatos, columnas secundarias." },
+        { name: "success", hex: "#3DDC91", uso: "Deltas positivos, confirmación de guardado." },
+        { name: "danger", hex: "#FF4D6D", uso: "Error de validación, acción destructiva." }
+      ]
+    };
+  }
+}
+
+</script>
+</body>
+</html>

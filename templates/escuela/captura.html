@@ -1,0 +1,68 @@
+{% extends "base.html" %}
+{% block titulo %}Captura · VIVA SOCCER{% endblock %}
+
+{% block contenido %}
+<p class="seccion-kicker">06 / Captura de evaluaciones</p>
+<h1 class="titulo mt-1 text-4xl">CAPTURA</h1>
+
+{# --- Selector de grupo y fecha (recarga al cambiar) --- #}
+<form method="get" class="mt-6 flex flex-wrap gap-3">
+  <select name="grupo" onchange="this.form.submit()" class="campo max-w-xs">
+    {% for valor, etiqueta in grupos %}
+      <option value="{{ valor }}" {% if valor == grupo %}selected{% endif %}>{{ etiqueta }}</option>
+    {% endfor %}
+  </select>
+  <input type="date" name="fecha" value="{{ fecha|date:'Y-m-d' }}" onchange="this.form.submit()"
+         class="campo w-44">
+</form>
+
+<div class="mt-4">
+  <div class="mb-1 flex justify-between text-xs text-text-muted">
+    <span>Capturados</span>
+    <span class="font-mono text-accent">{{ capturados }} / {{ total }}</span>
+  </div>
+  <div class="h-1.5 overflow-hidden rounded-full bg-border">
+    <div class="h-1.5 rounded-full bg-accent" style="width: {{ pct }}%"></div>
+  </div>
+</div>
+
+{# --- Tarjetas de captura --- #}
+<form method="post" action="?grupo={{ grupo }}&fecha={{ fecha|date:'Y-m-d' }}" class="mt-4">
+  {% csrf_token %}
+  <div class="grid gap-3 pb-24 lg:grid-cols-2">
+    {% for fila in filas %}
+    <div class="rounded-xl border bg-bg-surface p-4 {% if fila.completa %}border-accent{% else %}border-border{% endif %}">
+      <div class="flex items-center justify-between gap-2">
+        <p class="font-display text-xl font-bold leading-tight">{{ fila.alumno.nombre }}</p>
+        <span class="font-mono text-[11px] text-text-muted">{{ fila.alumno.folio }}</span>
+      </div>
+      <div class="mt-3 grid grid-cols-3 gap-2">
+        <label class="flex flex-col gap-1">
+          <span class="text-[10px] tracking-[0.12em] text-text-muted">PASE</span>
+          <input type="number" inputmode="numeric" min="1" max="10" name="pase_{{ fila.alumno.id }}"
+                 value="{{ fila.pase }}" class="nota-input">
+        </label>
+        <label class="flex flex-col gap-1">
+          <span class="text-[10px] tracking-[0.12em] text-text-muted">RECEP.</span>
+          <input type="number" inputmode="numeric" min="1" max="10" name="recepcion_{{ fila.alumno.id }}"
+                 value="{{ fila.recepcion }}" class="nota-input">
+        </label>
+        <label class="flex flex-col gap-1">
+          <span class="text-[10px] tracking-[0.12em] text-text-muted">TIRO</span>
+          <input type="number" inputmode="numeric" min="1" max="10" name="tiro_{{ fila.alumno.id }}"
+                 value="{{ fila.tiro }}" class="nota-input">
+        </label>
+      </div>
+    </div>
+    {% empty %}
+    <p class="tarjeta text-sm text-text-muted lg:col-span-2">No hay alumnos activos en este grupo.</p>
+    {% endfor %}
+  </div>
+
+  {% if filas %}
+  <div class="sticky bottom-0 -mx-6 border-t border-border bg-bg-base/95 px-6 py-3 backdrop-blur">
+    <button type="submit" class="btn-primario w-full">GUARDAR {{ total }} EVALUAC{{ total|pluralize:"IÓN,IONES" }}</button>
+  </div>
+  {% endif %}
+</form>
+{% endblock %}

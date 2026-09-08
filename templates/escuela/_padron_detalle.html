@@ -1,0 +1,48 @@
+{% load static %}
+<div class="tarjeta">
+  <div class="flex items-start justify-between gap-3">
+    <div>
+      <p class="font-mono text-[11px] text-text-muted">{{ alumno.folio }}</p>
+      <h2 class="titulo mt-1 text-2xl leading-tight">{{ alumno.nombre }}</h2>
+      <p class="mt-1 text-[13px] text-text-muted">{{ alumno.get_categoria_display }} · {{ alumno.get_horario_display }}</p>
+    </div>
+    <button type="button" class="flex h-8 w-8 items-center justify-center rounded-lg border border-border text-text-muted hover:border-accent-secondary hover:text-text-primary"
+            onclick="document.getElementById('panel').innerHTML='<div class=\'tarjeta text-sm text-text-muted\'>Selecciona un alumno para ver su detalle.</div>'">✕</button>
+  </div>
+
+  {% if ultima %}
+  <div class="mt-6 grid grid-cols-3 gap-2">
+    <div class="rounded-lg border border-border bg-bg-base p-3">
+      <p class="text-[10px] tracking-[0.12em] text-text-muted">PASE</p>
+      <p class="cifra text-3xl text-accent">{{ ultima.pase }}</p>
+    </div>
+    <div class="rounded-lg border border-border bg-bg-base p-3">
+      <p class="text-[10px] tracking-[0.12em] text-text-muted">RECEP.</p>
+      <p class="cifra text-3xl">{{ ultima.recepcion }}</p>
+    </div>
+    <div class="rounded-lg border border-border bg-bg-base p-3">
+      <p class="text-[10px] tracking-[0.12em] text-text-muted">TIRO</p>
+      <p class="cifra text-3xl">{{ ultima.tiro }}</p>
+    </div>
+  </div>
+
+  <p class="etiqueta mt-6">Progresión</p>
+  <svg viewBox="0 0 380 110" class="mt-2 block h-auto w-full">
+    <line x1="0" y1="0" x2="380" y2="0" class="stroke-border"></line>
+    <line x1="0" y1="55" x2="380" y2="55" class="stroke-border"></line>
+    <line x1="0" y1="110" x2="380" y2="110" class="stroke-border"></line>
+    <polyline points="{{ serie.pase }}" fill="none" stroke-width="3" class="stroke-accent"></polyline>
+    <polyline points="{{ serie.recepcion }}" fill="none" stroke-width="2" class="stroke-accent-secondary"></polyline>
+    <polyline points="{{ serie.tiro }}" fill="none" stroke-width="2" class="stroke-text-muted"></polyline>
+  </svg>
+  <div class="mt-2 flex gap-4 text-xs text-text-muted">
+    <span class="flex items-center gap-1.5"><i class="block h-0.5 w-2.5 bg-accent"></i>Pase</span>
+    <span class="flex items-center gap-1.5"><i class="block h-0.5 w-2.5 bg-accent-secondary"></i>Recepción</span>
+    <span class="flex items-center gap-1.5"><i class="block h-0.5 w-2.5 bg-text-muted"></i>Tiro</span>
+  </div>
+  {% else %}
+  <p class="mt-6 text-sm text-text-muted">Este alumno todavía no tiene evaluaciones.</p>
+  {% endif %}
+
+  <a href="{% url 'ficha' alumno.pk %}" class="btn-fantasma mt-6 w-full border-accent text-accent">Ver ficha completa</a>
+</div>

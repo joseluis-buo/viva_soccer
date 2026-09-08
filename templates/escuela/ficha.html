@@ -1,0 +1,119 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block titulo %}{{ alumno.nombre }} · VIVA SOCCER{% endblock %}
+
+{% block contenido %}
+<p class="seccion-kicker">07 / Ficha de alumno</p>
+
+{# --- Encabezado --- #}
+<div class="relative mt-2 overflow-hidden rounded-xl border border-border bg-bg-surface p-8">
+  <div class="pointer-events-none absolute -right-16 -top-10 h-64 w-56 -skew-x-[14deg] bg-border"></div>
+  <div class="relative flex flex-wrap items-end justify-between gap-8">
+    <div>
+      <p class="font-mono text-xs text-text-muted">{{ alumno.folio }}</p>
+      <h1 class="titulo mt-1 text-5xl leading-none">{{ alumno.nombre }}</h1>
+      <div class="mt-2 flex flex-wrap gap-4 text-sm text-text-muted">
+        <span>{{ alumno.get_categoria_display }}</span>
+        <span>{{ alumno.get_horario_display }}</span>
+        <span>Nac. {{ alumno.fecha_nacimiento|date:"d/m/Y" }}</span>
+        <span>Tutor: {{ alumno.tutor }}</span>
+        <span class="font-mono">{{ alumno.telefono }}</span>
+      </div>
+    </div>
+    <div class="flex gap-2">
+      <div class="min-w-[88px] rounded-lg border border-border bg-bg-base px-4 py-3">
+        <p class="text-[10px] tracking-[0.12em] text-text-muted">PROMEDIO</p>
+        <p class="cifra text-4xl text-accent">{{ promedio_actual|default:"—" }}</p>
+      </div>
+      <div class="min-w-[88px] rounded-lg border border-border bg-bg-base px-4 py-3">
+        <p class="text-[10px] tracking-[0.12em] text-text-muted">CATEGORÍA</p>
+        <p class="cifra text-4xl">{{ promedio_categoria|default:"—" }}</p>
+      </div>
+      <div class="min-w-[88px] rounded-lg border border-border bg-bg-base px-4 py-3">
+        <p class="text-[10px] tracking-[0.12em] text-text-muted">DIFERENCIA</p>
+        <p class="cifra text-4xl {{ diferencia_clase }}">{{ diferencia_txt }}</p>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="mt-6 grid items-start gap-6 lg:grid-cols-2">
+  {# --- Progresión --- #}
+  <div class="tarjeta">
+    <div class="flex flex-wrap items-center justify-between gap-3">
+      <h2 class="titulo text-2xl">PROGRESIÓN HISTÓRICA</h2>
+      <div class="flex gap-4 text-xs text-text-muted">
+        <span class="flex items-center gap-1.5"><i class="block h-0.5 w-3 bg-accent"></i>Pase</span>
+        <span class="flex items-center gap-1.5"><i class="block h-0.5 w-3 bg-accent-secondary"></i>Recepción</span>
+        <span class="flex items-center gap-1.5"><i class="block h-0.5 w-3 bg-text-muted"></i>Tiro</span>
+      </div>
+    </div>
+    <div class="mt-4"><canvas id="graficaProgresion" height="150"></canvas></div>
+  </div>
+
+  {# --- Historial --- #}
+  <div class="overflow-hidden rounded-xl border border-border bg-bg-surface">
+    <h2 class="titulo px-6 pt-6 pb-4 text-2xl">EVALUACIONES</h2>
+    <div class="overflow-x-auto">
+      <table class="w-full min-w-[420px] border-collapse">
+        <thead>
+          <tr class="bg-border text-left">
+            <th class="px-6 py-2.5 text-[11px] font-semibold tracking-[0.12em] text-text-muted">FECHA</th>
+            <th class="px-3 py-2.5 text-center text-[11px] font-semibold tracking-[0.12em] text-text-muted">PASE</th>
+            <th class="px-3 py-2.5 text-center text-[11px] font-semibold tracking-[0.12em] text-text-muted">RECEP.</th>
+            <th class="px-3 py-2.5 text-center text-[11px] font-semibold tracking-[0.12em] text-text-muted">TIRO</th>
+            <th class="px-6 py-2.5 text-center text-[11px] font-semibold tracking-[0.12em] text-text-muted">PROM.</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for e in evaluaciones %}
+          <tr class="border-b border-border">
+            <td class="px-6 py-3 font-mono text-xs text-text-muted">{{ e.fecha|date:"d/m/Y" }}</td>
+            <td class="px-3 py-3 text-center font-display text-xl font-bold">{{ e.pase }}</td>
+            <td class="px-3 py-3 text-center font-display text-xl font-bold">{{ e.recepcion }}</td>
+            <td class="px-3 py-3 text-center font-display text-xl font-bold">{{ e.tiro }}</td>
+            <td class="px-6 py-3 text-center font-display text-xl font-bold text-accent">{{ e.promedio }}</td>
+          </tr>
+          {% empty %}
+          <tr><td colspan="5" class="px-6 py-10 text-center text-sm text-text-muted">Sin evaluaciones registradas.</td></tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>
+
+{{ serie|json_script:"datos-progresion" }}
+{% endblock %}
+
+{% block scripts %}
+<script src="{% static 'js/paleta.js' %}"></script>
+<script src="{% static 'js/chart.umd.min.js' %}"></script>
+<script>
+  (function () {
+    const datos = JSON.parse(document.getElementById("datos-progresion").textContent);
+    const ejeGris = { grid: { color: PALETA.border }, ticks: { color: PALETA.textMuted } };
+    const linea = (label, data, color, width) => ({
+      label, data, borderColor: color, backgroundColor: color,
+      borderWidth: width, tension: 0.3, pointRadius: 2,
+    });
+    new Chart(document.getElementById("graficaProgresion"), {
+      type: "line",
+      data: {
+        labels: datos.fechas,
+        datasets: [
+          linea("Pase", datos.pase, PALETA.accent, 3),
+          linea("Recepción", datos.recepcion, PALETA.accentSecundario, 2),
+          linea("Tiro", datos.tiro, PALETA.textMuted, 2),
+        ],
+      },
+      options: {
+        responsive: true,
+        plugins: { legend: { display: false } },
+        scales: { x: ejeGris, y: { ...ejeGris, min: 0, max: 10 } },
+      },
+    });
+  })();
+</script>
+{% endblock %}
