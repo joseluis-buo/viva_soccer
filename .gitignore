@@ -11,3 +11,6 @@ db.sqlite3
 
 # Miniatura generada por la herramienta de diseño
 /design/.thumbnail
+
+staticfiles/n.env
+.Rhistory
