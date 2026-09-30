@@ -12,6 +12,7 @@ https://docs.djangoproject.com/en/5.2/ref/settings/
 
 import os
 from pathlib import Path
+from django.core.exceptions import ImproperlyConfigured
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -27,6 +28,10 @@ SECRET_KEY = os.environ.get(
 )
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = os.environ.get('DJANGO_DEBUG', '1') == '1'
+
+# En producción la llave de respaldo es pública (el repo lo es): exigir la variable.
+if not DEBUG and 'DJANGO_SECRET_KEY' not in os.environ:
+    raise ImproperlyConfigured('Falta DJANGO_SECRET_KEY con DEBUG apagado.')
 
 ALLOWED_HOSTS = os.environ.get('DJANGO_ALLOWED_HOSTS', '127.0.0.1,localhost').split(',')
 
