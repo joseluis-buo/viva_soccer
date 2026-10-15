@@ -1,5 +1,5 @@
 """Carga datos de ejemplo: 8 alumnos del diseño, su histórico de evaluaciones
-y dos usuarios demo (admin / entrenador). Es idempotente; usa --reset para
+y tres usuarios demo (admin / secretaria / entrenador). Es idempotente; usa --reset para
 borrar el padrón y volver a empezar."""
 
 import random
@@ -10,7 +10,7 @@ from django.contrib.auth.models import Group
 from django.core.management.base import BaseCommand
 from django.db import transaction
 
-from escuela.models import Alumno, Categoria, Evaluacion, Horario
+from escuela.models import Alumno, Categoria, Evaluacion, Horario, Tutor
 
 User = get_user_model()
 
@@ -52,16 +52,19 @@ class Command(BaseCommand):
         if options["reset"]:
             Evaluacion.objects.all().delete()
             Alumno.objects.all().delete()
+            Tutor.objects.all().delete()
             self.stdout.write(self.style.WARNING("Padrón borrado."))
 
-        for nombre in ("administrador", "entrenador"):
+        for nombre in ("administrador", "secretaria", "entrenador"):
             Group.objects.get_or_create(name=nombre)
 
         self._usuario("admin", "admin", "administrador", is_staff=True, is_superuser=True)
+        self._usuario("secretaria", "secretaria", "secretaria")
         entrenador = self._usuario("entrenador", "entrenador", "entrenador", is_staff=True)
 
         rnd = random.Random(2026)  # determinista: re-ejecutar da los mismos números
-        for nombre, nac, categoria, horario, tutor, telefono in ALUMNOS:
+        for nombre, nac, categoria, horario, nombre_tutor, telefono in ALUMNOS:
+            tutor, _ = Tutor.objects.get_or_create(nombre=nombre_tutor, telefono=telefono)
             alumno, _ = Alumno.objects.get_or_create(
                 nombre=nombre,
                 defaults={
@@ -69,7 +72,6 @@ class Command(BaseCommand):
                     "categoria": categoria,
                     "horario": horario,
                     "tutor": tutor,
-                    "telefono": telefono,
                 },
             )
             base = rnd.uniform(5.0, 7.0)
@@ -94,7 +96,7 @@ class Command(BaseCommand):
             self.style.SUCCESS(
                 f"Listo: {Alumno.objects.count()} alumnos, "
                 f"{Evaluacion.objects.count()} evaluaciones. "
-                "Usuarios: admin/admin y entrenador/entrenador."
+                "Usuarios: admin/admin, secretaria/secretaria y entrenador/entrenador."
             )
         )
 

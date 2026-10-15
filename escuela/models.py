@@ -24,17 +24,37 @@ validar_telefono = RegexValidator(
 )
 
 
-class Alumno(models.Model):
+class Tutor(models.Model):
+    """Padre, madre o responsable. Un tutor puede tener varios alumnos (hermanos)."""
+
     nombre = models.CharField("nombre completo", max_length=120)
-    fecha_nacimiento = models.DateField("fecha de nacimiento")
-    categoria = models.CharField("categoría", max_length=5, choices=Categoria.choices)
-    horario = models.CharField("horario", max_length=7, choices=Horario.choices)
-    tutor = models.CharField("tutor", max_length=120)
     telefono = models.CharField(
         "teléfono de contacto",
         max_length=14,
         validators=[validar_telefono],
         help_text="Formato: 55 1234 5678",
+    )
+    correo = models.EmailField("correo electrónico", blank=True)
+
+    class Meta:
+        verbose_name = "tutor"
+        verbose_name_plural = "tutores"
+        ordering = ["nombre"]
+
+    def __str__(self):
+        return self.nombre
+
+
+class Alumno(models.Model):
+    nombre = models.CharField("nombre completo", max_length=120)
+    fecha_nacimiento = models.DateField("fecha de nacimiento")
+    categoria = models.CharField("categoría", max_length=5, choices=Categoria.choices)
+    horario = models.CharField("horario", max_length=7, choices=Horario.choices)
+    tutor = models.ForeignKey(
+        Tutor,
+        on_delete=models.PROTECT,
+        related_name="alumnos",
+        verbose_name="tutor",
     )
     activo = models.BooleanField("activo", default=True)
     fecha_alta = models.DateTimeField("fecha de alta", auto_now_add=True)

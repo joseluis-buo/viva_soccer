@@ -7,15 +7,22 @@
     <p class="seccion-kicker">04 / Padrón de alumnos</p>
     <h1 class="titulo mt-1 text-4xl">PADRÓN</h1>
   </div>
-  <button type="button" class="btn-primario h-11 text-lg"
-          hx-get="{% url 'alumno_nuevo' %}" hx-target="#modal">
-    + AGREGAR ALUMNO
-  </button>
+  <div class="flex flex-wrap gap-3">
+    {% if grupo %}
+    <a href="{% url 'boletas_grupo' %}?grupo={{ grupo|urlencode }}" target="_blank" class="btn-fantasma">
+      Imprimir boletas del grupo
+    </a>
+    {% endif %}
+    <button type="button" class="btn-primario h-11 text-lg"
+            hx-get="{% url 'alumno_nuevo' %}" hx-target="#modal">
+      + AGREGAR ALUMNO
+    </button>
+  </div>
 </div>
 
 {# --- Buscador + filtros --- #}
 <form method="get" class="mt-6 flex flex-wrap items-center gap-3">
-  <input type="text" name="q" value="{{ q }}" placeholder="Buscar por nombre…"
+  <input type="text" name="q" value="{{ q }}" placeholder="Buscar por alumno o tutor…"
          class="campo min-w-0 flex-1 basis-64">
   <input type="hidden" name="grupo" value="{{ grupo }}">
   <button class="btn-fantasma">Buscar</button>
@@ -46,11 +53,14 @@
         </thead>
         <tbody>
           {% for alumno in pagina %}
-          <tr class="cursor-pointer border-b border-border transition-colors hover:bg-border/50"
+          <tr class="cursor-pointer border-b border-border transition-colors hover:bg-border/50 {% if not alumno.activo %}text-text-muted{% endif %}"
               hx-get="{% url 'padron_detalle' alumno.pk %}" hx-target="#panel" hx-push-url="false">
             <td class="px-4 py-3.5 font-mono text-xs text-text-muted">{{ alumno.folio }}</td>
             <td class="px-4 py-3.5 font-semibold">
               <a href="{% url 'ficha' alumno.pk %}" class="hover:text-accent">{{ alumno.nombre }}</a>
+              {% if not alumno.activo %}
+              <span class="ml-2 inline-block rounded-full border border-danger px-2 py-0.5 text-[10px] font-bold tracking-[0.08em] text-danger">BAJA</span>
+              {% endif %}
             </td>
             <td class="px-4 py-3.5">
               <span class="inline-block rounded-full bg-border px-2.5 py-0.5 text-[11px] font-bold tracking-[0.08em]">
@@ -58,8 +68,8 @@
               </span>
             </td>
             <td class="px-4 py-3.5 font-mono text-xs text-text-muted">{{ alumno.fecha_nacimiento|date:"d/m/Y" }}</td>
-            <td class="px-4 py-3.5 text-text-muted">{{ alumno.tutor }}</td>
-            <td class="px-4 py-3.5 font-mono text-xs text-text-muted">{{ alumno.telefono }}</td>
+            <td class="px-4 py-3.5 text-text-muted">{{ alumno.tutor.nombre }}</td>
+            <td class="px-4 py-3.5 font-mono text-xs text-text-muted">{{ alumno.tutor.telefono }}</td>
             <td class="px-2 py-2 text-right whitespace-nowrap">
               <button type="button" class="btn-fantasma h-8 px-3 text-xs"
                       hx-get="{% url 'alumno_editar' alumno.pk %}" hx-target="#modal"

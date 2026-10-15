@@ -4,7 +4,26 @@
 {% block titulo %}{{ alumno.nombre }} · VIVA SOCCER{% endblock %}
 
 {% block contenido %}
-<p class="seccion-kicker">07 / Ficha de alumno</p>
+<div class="flex flex-wrap items-center justify-between gap-3">
+  <p class="seccion-kicker">07 / Ficha de alumno</p>
+  <div class="flex flex-wrap gap-2">
+    <a href="{% url 'boleta' alumno.pk %}" target="_blank" class="btn-fantasma h-9 px-3 text-xs">Imprimir boleta</a>
+    <button type="button" class="btn-fantasma h-9 px-3 text-xs"
+            hx-get="{% url 'alumno_editar' alumno.pk %}" hx-target="#modal">Editar datos</button>
+    {% if alumno.activo %}
+    <form method="post" action="{% url 'alumno_baja' alumno.pk %}"
+          onsubmit="return confirm('¿Dar de baja a {{ alumno.nombre|escapejs }}? Deja de aparecer en captura, pero su histórico se conserva.')">
+      {% csrf_token %}
+      <button class="btn-fantasma h-9 px-3 text-xs text-danger hover:border-danger">Dar de baja</button>
+    </form>
+    {% else %}
+    <form method="post" action="{% url 'alumno_reactivar' alumno.pk %}">
+      {% csrf_token %}
+      <button class="btn-fantasma h-9 px-3 text-xs border-accent text-accent">Reactivar</button>
+    </form>
+    {% endif %}
+  </div>
+</div>
 
 {# --- Encabezado --- #}
 <div class="relative mt-2 overflow-hidden rounded-xl border border-border bg-bg-surface p-8">
@@ -13,12 +32,15 @@
     <div>
       <p class="font-mono text-xs text-text-muted">{{ alumno.folio }}</p>
       <h1 class="titulo mt-1 text-5xl leading-none">{{ alumno.nombre }}</h1>
+      {% if not alumno.activo %}
+      <span class="mt-2 inline-block rounded-full border border-danger px-2.5 py-0.5 text-[11px] font-bold tracking-[0.08em] text-danger">DADO DE BAJA</span>
+      {% endif %}
       <div class="mt-2 flex flex-wrap gap-4 text-sm text-text-muted">
         <span>{{ alumno.get_categoria_display }}</span>
         <span>{{ alumno.get_horario_display }}</span>
         <span>Nac. {{ alumno.fecha_nacimiento|date:"d/m/Y" }}</span>
-        <span>Tutor: {{ alumno.tutor }}</span>
-        <span class="font-mono">{{ alumno.telefono }}</span>
+        <span>Tutor: {{ alumno.tutor.nombre }}</span>
+        <span class="font-mono">{{ alumno.tutor.telefono }}</span>
       </div>
     </div>
     <div class="flex gap-2">
@@ -54,16 +76,21 @@
 
   {# --- Historial --- #}
   <div class="overflow-hidden rounded-xl border border-border bg-bg-surface">
-    <h2 class="titulo px-6 pt-6 pb-4 text-2xl">EVALUACIONES</h2>
+    <div class="flex items-center justify-between gap-3 px-6 pt-6 pb-4">
+      <h2 class="titulo text-2xl">EVALUACIONES</h2>
+      <button type="button" class="btn-fantasma h-9 px-3 text-xs"
+              hx-get="{% url 'evaluacion_nueva' alumno.pk %}" hx-target="#modal">+ Agregar</button>
+    </div>
     <div class="overflow-x-auto">
-      <table class="w-full min-w-[420px] border-collapse">
+      <table class="w-full min-w-[560px] border-collapse">
         <thead>
           <tr class="bg-border text-left">
             <th class="px-6 py-2.5 text-[11px] font-semibold tracking-[0.12em] text-text-muted">FECHA</th>
             <th class="px-3 py-2.5 text-center text-[11px] font-semibold tracking-[0.12em] text-text-muted">PASE</th>
             <th class="px-3 py-2.5 text-center text-[11px] font-semibold tracking-[0.12em] text-text-muted">RECEP.</th>
             <th class="px-3 py-2.5 text-center text-[11px] font-semibold tracking-[0.12em] text-text-muted">TIRO</th>
-            <th class="px-6 py-2.5 text-center text-[11px] font-semibold tracking-[0.12em] text-text-muted">PROM.</th>
+            <th class="px-3 py-2.5 text-center text-[11px] font-semibold tracking-[0.12em] text-text-muted">PROM.</th>
+            <th class="px-6 py-2.5"></th>
           </tr>
         </thead>
         <tbody>
@@ -73,10 +100,19 @@
             <td class="px-3 py-3 text-center font-display text-xl font-bold">{{ e.pase }}</td>
             <td class="px-3 py-3 text-center font-display text-xl font-bold">{{ e.recepcion }}</td>
             <td class="px-3 py-3 text-center font-display text-xl font-bold">{{ e.tiro }}</td>
-            <td class="px-6 py-3 text-center font-display text-xl font-bold text-accent">{{ e.promedio }}</td>
+            <td class="px-3 py-3 text-center font-display text-xl font-bold text-accent">{{ e.promedio }}</td>
+            <td class="px-6 py-2 text-right whitespace-nowrap">
+              <button type="button" class="btn-fantasma h-8 px-3 text-xs"
+                      hx-get="{% url 'evaluacion_editar' e.pk %}" hx-target="#modal">Editar</button>
+              <form method="post" action="{% url 'evaluacion_eliminar' e.pk %}" class="inline"
+                    onsubmit="return confirm('¿Eliminar la evaluación del {{ e.fecha|date:"d/m/Y" }}?')">
+                {% csrf_token %}
+                <button class="btn-fantasma h-8 px-3 text-xs text-danger hover:border-danger">Eliminar</button>
+              </form>
+            </td>
           </tr>
           {% empty %}
-          <tr><td colspan="5" class="px-6 py-10 text-center text-sm text-text-muted">Sin evaluaciones registradas.</td></tr>
+          <tr><td colspan="6" class="px-6 py-10 text-center text-sm text-text-muted">Sin evaluaciones registradas.</td></tr>
           {% endfor %}
         </tbody>
       </table>

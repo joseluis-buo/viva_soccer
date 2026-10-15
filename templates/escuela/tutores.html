@@ -1,0 +1,90 @@
+{% extends "base.html" %}
+{% block titulo %}Tutores · VIVA SOCCER{% endblock %}
+
+{% block contenido %}
+<div class="flex flex-wrap items-center justify-between gap-4">
+  <div>
+    <p class="seccion-kicker">Padres y responsables</p>
+    <h1 class="titulo mt-1 text-4xl">TUTORES</h1>
+  </div>
+  <button type="button" class="btn-primario h-11 text-lg"
+          hx-get="{% url 'tutor_nuevo' %}" hx-target="#modal">
+    + AGREGAR TUTOR
+  </button>
+</div>
+
+<form method="get" class="mt-6 flex flex-wrap items-center gap-3">
+  <input type="text" name="q" value="{{ q }}" placeholder="Buscar por tutor, teléfono o alumno…"
+         class="campo min-w-0 flex-1 basis-64">
+  <button class="btn-fantasma">Buscar</button>
+</form>
+
+<div class="mt-6 overflow-hidden rounded-xl border border-border bg-bg-surface">
+  <div class="overflow-x-auto">
+    <table class="w-full min-w-[720px] border-collapse text-sm">
+      <thead>
+        <tr class="bg-border text-left">
+          <th class="px-4 py-3 text-[11px] font-semibold tracking-[0.12em] text-text-muted">NOMBRE</th>
+          <th class="px-4 py-3 text-[11px] font-semibold tracking-[0.12em] text-text-muted">TELÉFONO</th>
+          <th class="px-4 py-3 text-[11px] font-semibold tracking-[0.12em] text-text-muted">CORREO</th>
+          <th class="px-4 py-3 text-[11px] font-semibold tracking-[0.12em] text-text-muted">ALUMNOS</th>
+          <th class="px-4 py-3 text-right text-[11px] font-semibold tracking-[0.12em] text-text-muted">ACCIONES</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for tutor in pagina %}
+        <tr class="border-b border-border">
+          <td class="px-4 py-3.5 font-semibold">{{ tutor.nombre }}</td>
+          <td class="px-4 py-3.5 font-mono text-xs text-text-muted">{{ tutor.telefono }}</td>
+          <td class="px-4 py-3.5 text-text-muted">{{ tutor.correo|default:"—" }}</td>
+          <td class="px-4 py-3.5">
+            {% for alumno in tutor.alumnos.all %}
+            <a href="{% url 'ficha' alumno.pk %}" class="block hover:text-accent {% if not alumno.activo %}text-text-muted{% endif %}">
+              {{ alumno.nombre }}{% if not alumno.activo %} <span class="text-[10px] font-bold text-danger">BAJA</span>{% endif %}
+            </a>
+            {% empty %}
+            <span class="text-text-muted">Sin alumnos</span>
+            {% endfor %}
+          </td>
+          <td class="px-2 py-2 text-right whitespace-nowrap">
+            <button type="button" class="btn-fantasma h-8 px-3 text-xs"
+                    hx-get="{% url 'tutor_editar' tutor.pk %}" hx-target="#modal">Editar</button>
+            {% if not tutor.alumnos.all %}
+            <form method="post" action="{% url 'tutor_eliminar' tutor.pk %}" class="inline"
+                  onsubmit="return confirm('¿Eliminar a {{ tutor.nombre|escapejs }}?')">
+              {% csrf_token %}
+              <button class="btn-fantasma h-8 px-3 text-xs text-danger hover:border-danger">Eliminar</button>
+            </form>
+            {% endif %}
+          </td>
+        </tr>
+        {% empty %}
+        <tr><td colspan="5">
+          <div class="px-6 py-16 text-center">
+            <p class="titulo text-2xl">SIN RESULTADOS</p>
+            <p class="mt-2 text-sm text-text-muted">Ningún tutor coincide con la búsqueda.</p>
+          </div>
+        </td></tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+
+  <div class="flex flex-wrap items-center justify-between gap-3 border-t border-border px-4 py-3">
+    <span class="font-mono text-xs text-text-muted">
+      {{ pagina.paginator.count }} tutor{{ pagina.paginator.count|pluralize:"es" }} ·
+      página {{ pagina.number }} de {{ pagina.paginator.num_pages }}
+    </span>
+    <div class="flex gap-1">
+      {% if pagina.has_previous %}
+      <a href="?page={{ pagina.previous_page_number }}&q={{ q|urlencode }}"
+         class="flex h-9 w-9 items-center justify-center rounded-lg border border-border hover:border-accent-secondary">‹</a>
+      {% endif %}
+      {% if pagina.has_next %}
+      <a href="?page={{ pagina.next_page_number }}&q={{ q|urlencode }}"
+         class="flex h-9 w-9 items-center justify-center rounded-lg border border-border hover:border-accent-secondary">›</a>
+      {% endif %}
+    </div>
+  </div>
+</div>
+{% endblock %}

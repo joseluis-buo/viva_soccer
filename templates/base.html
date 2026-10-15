@@ -29,7 +29,10 @@
       <nav class="flex flex-wrap gap-1">
         {% if es_administrador %}
           {% include "escuela/_navlink.html" with destino='dashboard' texto='Panel' %}
+        {% endif %}
+        {% if es_secretaria %}
           {% include "escuela/_navlink.html" with destino='padron' texto='Padrón' %}
+          {% include "escuela/_navlink.html" with destino='tutores' texto='Tutores' %}
         {% endif %}
         {% if es_entrenador %}
           {% include "escuela/_navlink.html" with destino='captura' texto='Captura' %}
@@ -61,7 +64,7 @@
     {% block contenido %}{% endblock %}
   </main>
 
-  {# Contenedor para modales cargados con HTMX (formulario de alumno). #}
+  {# Contenedor para modales cargados con HTMX (formularios de alumno, tutor y evaluación). #}
   <div id="modal"></div>
 
   {# HTMX servido localmente (funciona sin red, p. ej. en la cancha). #}

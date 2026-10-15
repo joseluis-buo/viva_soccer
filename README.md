@@ -47,10 +47,17 @@ Abre http://127.0.0.1:8000/ y entra con uno de los usuarios demo.
 | Usuario       | Contraseña    | Rol           | Pantalla de inicio |
 |---------------|---------------|---------------|--------------------|
 | `admin`       | `admin`       | administrador | Panel              |
+| `secretaria`  | `secretaria`  | secretaria    | Padrón             |
 | `entrenador`  | `entrenador`  | entrenador    | Captura            |
 
-- **administrador**: padrón completo, panel con indicadores y fichas de alumno.
+- **administrador**: todo lo de los otros dos roles, más el panel con indicadores.
+- **secretaria**: padrón (alta, edición, baja y reactivación de alumnos),
+  tutores, corrección de evaluaciones desde la ficha y boletas imprimibles
+  (por alumno o por grupo). No ve el panel ni la captura.
 - **entrenador**: solo la pantalla de captura de evaluaciones (mobile-first).
+
+Un usuario con sesión que entra a una pantalla de otro rol se manda a su propia
+pantalla de inicio.
 
 `seed_demo` es idempotente. Con `--reset` borra el padrón y las evaluaciones
 antes de recargar.
@@ -74,18 +81,19 @@ python manage.py test
 ```
 
 Cubren el cálculo de promedio y folio, la restricción de una evaluación por
-alumno y fecha, la validación del teléfono, la separación de accesos por rol y
-el guardado de la pantalla de captura.
+alumno y fecha, la validación del teléfono, la separación de accesos por rol,
+el guardado de la pantalla de captura y las funciones de secretaria (tutores,
+baja, corrección de evaluaciones y boletas).
 
 ## Estructura
 
 ```
 escuela/            App principal
-  models.py         Alumno, Evaluacion, Categoria, Horario
-  views.py          dashboard, padron, ficha, captura, alta/edición de alumno
-  roles.py          es_administrador / es_entrenador y sus decoradores
-  forms.py          AlumnoForm
-  admin.py          Django admin de Alumno y Evaluacion
+  models.py         Tutor, Alumno, Evaluacion, Categoria, Horario
+  views.py          dashboard, padrón, ficha, captura, tutores, evaluaciones, boletas
+  roles.py          es_administrador / es_secretaria / es_entrenador y sus decoradores
+  forms.py          AlumnoForm, TutorForm, EvaluacionForm
+  admin.py          Django admin de Tutor, Alumno y Evaluacion
   management/commands/seed_demo.py
 templates/          Plantillas (base + escuela/*)
 static/             input.css de Tailwind, CSS compilado, HTMX y Chart.js locales

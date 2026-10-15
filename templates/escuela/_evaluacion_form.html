@@ -1,0 +1,54 @@
+{% extends plantilla_base %}
+
+{% block titulo %}{{ titulo|title }} · VIVA SOCCER{% endblock %}
+
+{% block contenido %}
+<div class="fixed inset-0 z-[60] flex items-center justify-center overflow-y-auto bg-bg-base/80 p-6"
+     onclick="if (event.target === this) this.remove()">
+  <div class="relative w-full max-w-md overflow-hidden rounded-xl border border-border bg-bg-surface p-8">
+    <div class="absolute inset-x-0 top-0 h-1 bg-accent"></div>
+
+    <div class="flex items-start justify-between gap-4">
+      <div>
+        <p class="seccion-kicker">{{ alumno.folio }} · {{ alumno.nombre }}</p>
+        <h2 class="titulo mt-1 text-2xl">{{ titulo }}</h2>
+      </div>
+      <button type="button" class="flex h-8 w-8 items-center justify-center rounded-lg border border-border text-text-muted hover:text-text-primary"
+              onclick="document.getElementById('modal').innerHTML=''">✕</button>
+    </div>
+
+    <form hx-post="{{ accion }}" hx-target="#modal" class="mt-6">
+      {% csrf_token %}
+      <label class="flex flex-col gap-2">
+        <span class="etiqueta">Fecha</span>
+        {{ form.fecha }}
+        {% for e in form.fecha.errors %}<span class="text-xs text-danger">{{ e }}</span>{% endfor %}
+      </label>
+
+      <div class="mt-4 grid grid-cols-3 gap-3">
+        <label class="flex flex-col gap-2">
+          <span class="etiqueta">Pase</span>
+          {{ form.pase }}
+        </label>
+        <label class="flex flex-col gap-2">
+          <span class="etiqueta">Recep.</span>
+          {{ form.recepcion }}
+        </label>
+        <label class="flex flex-col gap-2">
+          <span class="etiqueta">Tiro</span>
+          {{ form.tiro }}
+        </label>
+      </div>
+      <p class="mt-2 text-xs text-text-muted">Calificaciones del 1 al 10.</p>
+      {% for campo in form %}{% if campo.name != "fecha" %}{% for e in campo.errors %}
+      <p class="mt-1 text-xs text-danger">{{ campo.label|capfirst }}: {{ e }}</p>
+      {% endfor %}{% endif %}{% endfor %}
+
+      <div class="mt-8 flex justify-end gap-3">
+        <button type="button" class="btn-fantasma" onclick="document.getElementById('modal').innerHTML=''">Cancelar</button>
+        <button type="submit" class="btn-primario h-11 text-base">GUARDAR</button>
+      </div>
+    </form>
+  </div>
+</div>
+{% endblock %}

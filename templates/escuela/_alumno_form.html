@@ -3,7 +3,7 @@
 {% block titulo %}{{ titulo|title }} · VIVA SOCCER{% endblock %}
 
 {% block contenido %}
-<div class="fixed inset-0 z-[60] flex items-center justify-center bg-bg-base/80 p-6"
+<div class="fixed inset-0 z-[60] flex items-center justify-center overflow-y-auto bg-bg-base/80 p-6"
      onclick="if (event.target === this) this.remove()">
   <div class="relative w-full max-w-lg overflow-hidden rounded-xl border border-border bg-bg-surface p-8">
     <div class="absolute inset-x-0 top-0 h-1 bg-accent"></div>
@@ -17,7 +17,9 @@
               onclick="document.getElementById('modal').innerHTML=''">✕</button>
     </div>
 
-    <form hx-post="{{ accion }}" hx-target="#modal" class="mt-6">
+    {# Al elegir un tutor registrado se ocultan los campos de tutor nuevo. #}
+    <form hx-post="{{ accion }}" hx-target="#modal" class="mt-6"
+          onchange="if (event.target.name === 'tutor') document.getElementById('tutor-nuevo').classList.toggle('hidden', !!event.target.value)">
       {% csrf_token %}
       <div class="grid gap-4 sm:grid-cols-2">
         <label class="flex flex-col gap-2 sm:col-span-2">
@@ -44,23 +46,27 @@
           {% for e in form.fecha_nacimiento.errors %}<span class="text-xs text-danger">{{ e }}</span>{% endfor %}
         </label>
 
-        <label class="flex flex-col gap-2">
+        <label class="flex flex-col gap-2 sm:col-span-2">
           <span class="etiqueta">Tutor</span>
           {{ form.tutor }}
+          <span class="text-xs text-text-muted">Elige uno registrado (p. ej. si ya tiene un hermano inscrito) o deja «Tutor nuevo» y llena sus datos.</span>
           {% for e in form.tutor.errors %}<span class="text-xs text-danger">{{ e }}</span>{% endfor %}
         </label>
 
-        <label class="flex flex-col gap-2 sm:col-span-2">
-          <span class="etiqueta">Teléfono</span>
-          {{ form.telefono }}
-          <span class="text-xs text-text-muted">Formato: 55 1234 5678 (10 dígitos).</span>
-          {% for e in form.telefono.errors %}<span class="text-xs text-danger">{{ e }}</span>{% endfor %}
-        </label>
+        <div id="tutor-nuevo" class="grid gap-4 sm:col-span-2 sm:grid-cols-2 {% if form.tutor.value %}hidden{% endif %}">
+          <label class="flex flex-col gap-2">
+            <span class="etiqueta">Nombre del tutor nuevo</span>
+            {{ form.tutor_nombre }}
+            {% for e in form.tutor_nombre.errors %}<span class="text-xs text-danger">{{ e }}</span>{% endfor %}
+          </label>
 
-        <label class="flex items-center gap-2 sm:col-span-2">
-          {{ form.activo }}
-          <span class="text-sm">Alumno activo</span>
-        </label>
+          <label class="flex flex-col gap-2">
+            <span class="etiqueta">Teléfono</span>
+            {{ form.tutor_telefono }}
+            <span class="text-xs text-text-muted">Formato: 55 1234 5678 (10 dígitos).</span>
+            {% for e in form.tutor_telefono.errors %}<span class="text-xs text-danger">{{ e }}</span>{% endfor %}
+          </label>
+        </div>
       </div>
 
       <div class="mt-8 flex justify-end gap-3">
