@@ -2,15 +2,21 @@
 (algunas con observaciones), comunicados para la app, tres usuarios demo
 (admin / secretaria / entrenador), un papá con cuenta activa y un código de
 activación sin canjear. Es idempotente; usa --reset para
-borrar el padrón y volver a empezar."""
+borrar el padrón y volver a empezar.
+
+--reset borra datos de todos los que usan la misma base (el equipo comparte
+la de Neon), así que pide escribir el nombre de la base y se niega con DEBUG
+apagado."""
 
 import random
 from datetime import date, timedelta
+from pathlib import Path
 
+from django.conf import settings
 from django.contrib.auth import get_user_model
 from django.contrib.auth.models import Group
-from django.core.management.base import BaseCommand
-from django.db import transaction
+from django.core.management.base import BaseCommand, CommandError
+from django.db import connection, transaction
 from django.utils import timezone
 
 from escuela.models import (
@@ -100,6 +106,14 @@ TUTOR_POR_ACTIVAR = ("Hugo Ocampo", "55 8871 2210")
 CODIGO_DEMO = "CANCHA26"
 
 
+def nombre_de_la_base():
+    """El que se escribe para confirmar --reset: "neondb" en Neon, "db.sqlite3" en local."""
+    nombre = str(connection.settings_dict["NAME"])
+    if connection.vendor == "sqlite":
+        return Path(nombre).name
+    return nombre
+
+
 class Command(BaseCommand):
     help = "Carga alumnos, evaluaciones y usuarios de ejemplo."
 
@@ -107,12 +121,44 @@ class Command(BaseCommand):
         parser.add_argument(
             "--reset",
             action="store_true",
-            help="Borra alumnos y evaluaciones antes de cargar.",
+            help=(
+                "Borra alumnos, evaluaciones y cuentas de los padres antes de cargar. "
+                "Pide escribir el nombre de la base; con DEBUG apagado se niega."
+            ),
+        )
+        parser.add_argument(
+            "--confirmar",
+            metavar="NOMBRE_DE_LA_BASE",
+            help="Confirma --reset sin preguntar (scripts y pruebas). Debe ser el nombre exacto.",
         )
 
-    @transaction.atomic
     def handle(self, *args, **options):
         if options["reset"]:
+            self._confirmar_reset(options["confirmar"])
+        self._sembrar(options["reset"])
+
+    def _confirmar_reset(self, confirmacion):
+        """Se revisa antes de abrir la transacción: no se espera al teclado con la base bloqueada."""
+        if not settings.DEBUG:
+            raise CommandError("--reset no se permite con DEBUG apagado (producción).")
+        nombre = nombre_de_la_base()
+        if confirmacion is None:
+            self.stdout.write(
+                self.style.WARNING(
+                    f"--reset borra el padrón, las evaluaciones y las cuentas de los "
+                    f"padres de la base «{nombre}», para todos los que la usan."
+                )
+            )
+            try:
+                confirmacion = input("Escribe el nombre de la base para confirmar: ")
+            except EOFError:  # sin teclado (p. ej. en un script)
+                confirmacion = ""
+        if confirmacion.strip() != nombre:
+            raise CommandError("No coincide el nombre de la base. No se borró nada.")
+
+    @transaction.atomic
+    def _sembrar(self, reset):
+        if reset:
             # Primero las cuentas de los papás: si quedaran, el teléfono seguiría
             # ocupado como usuario y el canje del código fallaría.
             User.objects.filter(tutor__isnull=False).delete()

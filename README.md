@@ -96,8 +96,19 @@ canjeó. Para repetir la activación desde cero (sin cuenta previa de Hugo), usa
 Un usuario con sesión que entra a una pantalla de otro rol se manda a su propia
 pantalla de inicio.
 
-`seed_demo` es idempotente. Con `--reset` borra el padrón, las evaluaciones y
-las cuentas de los padres antes de recargar.
+`seed_demo` es idempotente: sin `--reset` solo agrega lo que falta y no borra nada.
+
+> [!WARNING]
+> **`seed_demo --reset` borra datos de todo el equipo.** Borra el padrón, las
+> evaluaciones y **todas las cuentas de los padres** de la base a la que apunte
+> tu `DATABASE_URL`. Si es la de Neon, se borra para los cuatro.
+>
+> - Pide escribir el nombre de la base para confirmar (`neondb` en Neon,
+>   `db.sqlite3` en local). Si no coincide, no borra nada.
+> - Con `DJANGO_DEBUG=0` (producción) se niega siempre.
+> - Avisa al equipo antes de usarlo contra Neon.
+>
+> Para scripts: `python manage.py seed_demo --reset --confirmar <nombre de la base>`.
 
 Estos usuarios y el código tienen contraseñas conocidas: son solo para la base
 de desarrollo y la demostración, nunca para una base con alumnos reales.

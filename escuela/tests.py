@@ -14,15 +14,17 @@ Cubren lo que una entrega de avance necesita demostrar:
 
 from datetime import date, timedelta
 from io import StringIO
+from unittest import mock
 
 from django.contrib.auth.models import Group, User
-from django.core.management import call_command
+from django.core.management import CommandError, call_command
 from django.core.exceptions import ValidationError
 from django.db import IntegrityError, transaction
-from django.test import TestCase
+from django.test import TestCase, override_settings
 from django.urls import reverse
 from django.utils import timezone
 
+from .management.commands.seed_demo import nombre_de_la_base
 from .models import (
     GRUPOS,
     Alumno,
@@ -653,11 +655,67 @@ class SeedDemoTests(TestCase):
         call_command("seed_demo", stdout=StringIO())
         self.assertTrue(CodigoActivacion.objects.get(codigo="CANCHA26").vigente)
 
+    @override_settings(DEBUG=True)
     def test_reset_borra_las_cuentas_de_los_papas_para_activar_desde_cero(self):
         call_command("seed_demo", stdout=StringIO())
         CodigoActivacion.objects.get(codigo="CANCHA26").canjear("cancha-2026")
-        call_command("seed_demo", "--reset", stdout=StringIO())
+        call_command(
+            "seed_demo", "--reset", confirmar=nombre_de_la_base(), stdout=StringIO()
+        )
         codigo = CodigoActivacion.objects.get(codigo="CANCHA26")
         self.assertIsNone(codigo.tutor.usuario)
         self.assertFalse(User.objects.filter(username="5588712210").exists())
         self.assertTrue(User.objects.get(username="5512345678").check_password("tutor"))
+
+
+class ResetProtegidoTests(TestCase):
+    """--reset borra datos de todo el equipo: pide el nombre de la base y nunca corre en producción."""
+
+    def setUp(self):
+        call_command("seed_demo", stdout=StringIO())
+        self.alumnos = Alumno.objects.count()
+
+    def reset(self, **opciones):
+        call_command("seed_demo", "--reset", stdout=StringIO(), **opciones)
+
+    def assertNoSeBorroNada(self):
+        self.assertEqual(Alumno.objects.count(), self.alumnos)
+        self.assertTrue(User.objects.filter(username="5512345678").exists())
+
+    def test_con_debug_apagado_se_niega_aunque_el_nombre_sea_correcto(self):
+        # Las pruebas de Django ya corren con DEBUG=False, como producción.
+        with self.assertRaisesMessage(CommandError, "DEBUG apagado"):
+            self.reset(confirmar=nombre_de_la_base())
+        self.assertNoSeBorroNada()
+
+    @override_settings(DEBUG=True)
+    def test_con_otro_nombre_no_borra_nada(self):
+        with self.assertRaisesMessage(CommandError, "No se borró nada"):
+            self.reset(confirmar="otra-base")
+        self.assertNoSeBorroNada()
+
+    @override_settings(DEBUG=True)
+    def test_pregunta_el_nombre_si_no_viene_confirmado(self):
+        CodigoActivacion.objects.get(codigo="CANCHA26").canjear("cancha-2026")
+        with mock.patch("builtins.input", return_value=nombre_de_la_base()) as pregunta:
+            self.reset()
+        pregunta.assert_called_once()
+        # Se borró y se volvió a sembrar: la cuenta que Hugo activó ya no está.
+        self.assertFalse(User.objects.filter(username="5588712210").exists())
+        self.assertEqual(Alumno.objects.count(), self.alumnos)
+
+    @override_settings(DEBUG=True)
+    def test_respuesta_equivocada_al_preguntar_no_borra_nada(self):
+        CodigoActivacion.objects.get(codigo="CANCHA26").canjear("cancha-2026")
+        with mock.patch("builtins.input", return_value="si"):
+            with self.assertRaises(CommandError):
+                self.reset()
+        self.assertTrue(User.objects.filter(username="5588712210").exists())
+        self.assertNoSeBorroNada()
+
+    @override_settings(DEBUG=True)
+    def test_sin_teclado_no_borra_nada(self):
+        with mock.patch("builtins.input", side_effect=EOFError):
+            with self.assertRaises(CommandError):
+                self.reset()
+        self.assertNoSeBorroNada()

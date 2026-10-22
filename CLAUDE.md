@@ -167,7 +167,7 @@ source .venv/bin/activate
 pip install -r requirements.txt
 ./bin/tailwindcss -i static/src/input.css -o static/css/tailwind.css --minify
 python manage.py migrate
-python manage.py seed_demo          # datos de ejemplo; --reset para limpiar
+python manage.py seed_demo          # datos de ejemplo; --reset limpia (pide el nombre de la base)
 python manage.py runserver
 python manage.py test               # antes de cerrar cualquier cambio
 ```
