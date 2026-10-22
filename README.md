@@ -74,6 +74,18 @@ las que ya existen.
 | `admin`       | `admin`       | administrador | Panel              |
 | `secretaria`  | `secretaria`  | secretaria    | Padrón             |
 | `entrenador`  | `entrenador`  | entrenador    | Captura            |
+| `5512345678`  | `tutor`       | tutor         | App móvil, modo Familia |
+
+El tutor demo es Marisol Ruiz, mamá de Diego Salinas (Menor · Martes y Jueves).
+Como todos los padres, entra con su teléfono sin espacios y **solo desde la app
+móvil**; la web no tiene pantallas para tutores.
+
+**Código de activación demo: `CANCHA26`**, de Hugo Ocampo, papá de Renata
+(Mini). Hugo no tiene cuenta todavía: sirve para mostrar el flujo de activación
+en la app (código + contraseña nueva → entra al modo Familia como `5588712210`).
+Vence a los 7 días; volver a correr `seed_demo` lo renueva si ya venció o ya se
+canjeó. Para repetir la activación desde cero (sin cuenta previa de Hugo), usa
+`seed_demo --reset`.
 
 - **administrador**: todo lo de los otros dos roles, más el panel con indicadores.
 - **secretaria**: padrón (alta, edición, baja y reactivación de alumnos),
@@ -84,8 +96,11 @@ las que ya existen.
 Un usuario con sesión que entra a una pantalla de otro rol se manda a su propia
 pantalla de inicio.
 
-`seed_demo` es idempotente. Con `--reset` borra el padrón y las evaluaciones
-antes de recargar.
+`seed_demo` es idempotente. Con `--reset` borra el padrón, las evaluaciones y
+las cuentas de los padres antes de recargar.
+
+Estos usuarios y el código tienen contraseñas conocidas: son solo para la base
+de desarrollo y la demostración, nunca para una base con alumnos reales.
 
 ## Desarrollo del CSS
 

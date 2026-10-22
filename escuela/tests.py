@@ -8,7 +8,8 @@ Cubren lo que una entrega de avance necesita demostrar:
 - guardado de la pantalla de captura,
 - funciones de secretaria: tutores, baja, corrección de evaluaciones y boletas,
 - app móvil: cuenta del tutor, sus hijos y códigos de activación de un solo uso,
-- grupos asignados a cada entrenador.
+- grupos asignados a cada entrenador,
+- observaciones de las evaluaciones y comunicados en el admin.
 """
 
 from datetime import date, timedelta
@@ -29,12 +30,14 @@ from .models import (
     Categoria,
     CodigoActivacion,
     CodigoYaUsado,
+    Comunicado,
     Evaluacion,
     Horario,
     Tutor,
 )
 from .roles import (
     alumnos_del_entrenador,
+    alumnos_del_tutor,
     es_administrador,
     es_entrenador,
     es_secretaria,
@@ -237,6 +240,33 @@ class CapturaTests(TestCase):
         self.assertEqual((ev.pase, ev.recepcion, ev.tiro), (7, 8, 6))
         self.assertEqual(ev.capturada_por, self.entrenador)
 
+    def test_guarda_las_observaciones_y_las_vuelve_a_mostrar(self):
+        url = reverse("captura") + "?grupo=MINI-LUN_MIE&fecha=2026-09-08"
+        self.client.post(
+            url,
+            {
+                f"pase_{self.alumno.id}": "7",
+                f"recepcion_{self.alumno.id}": "8",
+                f"tiro_{self.alumno.id}": "6",
+                f"observaciones_{self.alumno.id}": "  Mejoró el pase largo.  ",
+            },
+        )
+        ev = Evaluacion.objects.get(alumno=self.alumno)
+        self.assertEqual(ev.observaciones, "Mejoró el pase largo.")
+        self.assertContains(self.client.get(url), "Mejoró el pase largo.")
+
+    def test_sin_observaciones_se_guarda_vacia(self):
+        url = reverse("captura") + "?grupo=MINI-LUN_MIE&fecha=2026-09-08"
+        self.client.post(
+            url,
+            {
+                f"pase_{self.alumno.id}": "7",
+                f"recepcion_{self.alumno.id}": "8",
+                f"tiro_{self.alumno.id}": "6",
+            },
+        )
+        self.assertEqual(Evaluacion.objects.get(alumno=self.alumno).observaciones, "")
+
     def test_reenviar_actualiza_en_lugar_de_duplicar(self):
         url = reverse("captura") + "?grupo=MINI-LUN_MIE&fecha=2026-09-08"
         base = {
@@ -331,6 +361,18 @@ class SecretariaTests(TestCase):
         )
         ev.refresh_from_db()
         self.assertEqual((ev.pase, ev.recepcion, ev.tiro), (9, 8, 7))
+
+    def test_corrige_las_observaciones_desde_la_ficha(self):
+        ev = Evaluacion.objects.create(
+            alumno=self.alumno, fecha=date(2026, 9, 8), pase=5, recepcion=5, tiro=5
+        )
+        self.client.post(
+            reverse("evaluacion_editar", args=[ev.pk]),
+            {"fecha": "2026-09-08", "pase": 5, "recepcion": 5, "tiro": 5,
+             "observaciones": "Faltó por lesión a media sesión."},
+        )
+        ev.refresh_from_db()
+        self.assertEqual(ev.observaciones, "Faltó por lesión a media sesión.")
 
     def test_no_permite_dos_evaluaciones_en_la_misma_fecha(self):
         Evaluacion.objects.create(
@@ -533,6 +575,43 @@ class AsignacionEntrenadorTests(TestCase):
         self.assertEqual(list(opciones), [self.profe])
 
 
+class ComunicadoAdminTests(TestCase):
+    def setUp(self):
+        self.secretaria = usuario_con_grupo("sec", "secretaria")
+        self.secretaria.is_staff = True
+        self.secretaria.save()
+        self.client.force_login(self.secretaria)
+
+    def test_secretaria_publica_un_comunicado_y_queda_como_autora(self):
+        respuesta = self.client.post(
+            reverse("admin:escuela_comunicado_add"),
+            {
+                "titulo": "Suspensión por lluvia",
+                "cuerpo": "Hoy no hay entrenamiento.",
+                "categoria": "",
+                "publicado_0": "2026-10-22",
+                "publicado_1": "10:00:00",
+            },
+        )
+        self.assertEqual(respuesta.status_code, 302)
+        comunicado = Comunicado.objects.get()
+        self.assertEqual(comunicado.autor, self.secretaria)
+        self.assertEqual(comunicado.categoria, "")
+
+    def test_secretaria_tiene_los_cuatro_permisos(self):
+        for accion in ("add", "change", "delete", "view"):
+            with self.subTest(accion=accion):
+                self.assertTrue(self.secretaria.has_perm(f"escuela.{accion}_comunicado"))
+
+    def test_entrenador_no_entra_a_comunicados(self):
+        profe = usuario_con_grupo("profe", "entrenador")
+        profe.is_staff = True
+        profe.save()
+        self.client.force_login(profe)
+        respuesta = self.client.get(reverse("admin:escuela_comunicado_add"))
+        self.assertEqual(respuesta.status_code, 403)
+
+
 class SeedDemoTests(TestCase):
     def test_el_entrenador_demo_queda_con_grupos(self):
         call_command("seed_demo", stdout=StringIO())
@@ -540,3 +619,45 @@ class SeedDemoTests(TestCase):
         entrenador = User.objects.get(username="entrenador")
         self.assertEqual(entrenador.asignaciones.count(), 4)
         self.assertTrue(alumnos_del_entrenador(entrenador).exists())
+
+    def test_deja_comunicados_y_observaciones_para_la_demostracion(self):
+        call_command("seed_demo", stdout=StringIO())
+        call_command("seed_demo", stdout=StringIO())  # idempotente
+        self.assertEqual(Comunicado.objects.count(), 3)
+        self.assertTrue(Comunicado.objects.filter(categoria="").exists())
+        self.assertTrue(Comunicado.objects.exclude(publicado__gt=timezone.now()).exists())
+        self.assertGreaterEqual(Evaluacion.objects.exclude(observaciones="").count(), 3)
+
+    def test_deja_una_mama_con_cuenta_activa_que_ve_a_su_hijo(self):
+        call_command("seed_demo", stdout=StringIO())
+        call_command("seed_demo", stdout=StringIO())  # idempotente
+        mama = User.objects.get(username="5512345678")
+        self.assertTrue(mama.check_password("tutor"))
+        self.assertTrue(es_tutor(mama))
+        self.assertEqual(
+            [a.nombre for a in alumnos_del_tutor(mama)], ["Diego Salinas Ruiz"]
+        )
+
+    def test_deja_un_codigo_vigente_de_un_papa_sin_cuenta(self):
+        call_command("seed_demo", stdout=StringIO())
+        codigo = CodigoActivacion.objects.get(codigo="CANCHA26")
+        self.assertTrue(codigo.vigente)
+        self.assertEqual(codigo.tutor.nombre, "Hugo Ocampo")
+        self.assertIsNone(codigo.tutor.usuario)
+        papa = codigo.canjear("cancha-2026")
+        self.assertEqual(papa.username, "5588712210")
+
+    def test_volver_a_sembrar_renueva_el_codigo_ya_canjeado(self):
+        call_command("seed_demo", stdout=StringIO())
+        CodigoActivacion.objects.get(codigo="CANCHA26").canjear("cancha-2026")
+        call_command("seed_demo", stdout=StringIO())
+        self.assertTrue(CodigoActivacion.objects.get(codigo="CANCHA26").vigente)
+
+    def test_reset_borra_las_cuentas_de_los_papas_para_activar_desde_cero(self):
+        call_command("seed_demo", stdout=StringIO())
+        CodigoActivacion.objects.get(codigo="CANCHA26").canjear("cancha-2026")
+        call_command("seed_demo", "--reset", stdout=StringIO())
+        codigo = CodigoActivacion.objects.get(codigo="CANCHA26")
+        self.assertIsNone(codigo.tutor.usuario)
+        self.assertFalse(User.objects.filter(username="5588712210").exists())
+        self.assertTrue(User.objects.get(username="5512345678").check_password("tutor"))

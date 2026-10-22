@@ -2,7 +2,7 @@ from django.contrib.auth import get_user_model
 from django.contrib.auth.password_validation import validate_password
 from django.core.exceptions import ValidationError as ErrorDeDjango
 from django.db import IntegrityError, transaction
-from django.db.models import Count
+from django.db.models import Count, Q
 from django.utils import timezone
 from rest_framework import status
 from rest_framework.exceptions import NotFound, PermissionDenied, ValidationError
@@ -11,18 +11,29 @@ from rest_framework.response import Response
 from rest_framework.views import APIView
 from rest_framework_simplejwt.views import TokenObtainPairView
 
-from escuela.models import GRUPOS, CodigoActivacion, CodigoYaUsado, Evaluacion
-from escuela.roles import alumnos_del_entrenador, grupos_de
+from escuela.models import (
+    GRUPOS,
+    CodigoActivacion,
+    CodigoYaUsado,
+    Comunicado,
+    Dispositivo,
+    Evaluacion,
+)
+from escuela.roles import alumnos_del_entrenador, alumnos_del_tutor, grupos_de
 
 from .errores import Conflicto, Vencido
-from .permisos import SoloEntrenador
+from .permisos import SoloEntrenador, SoloTutor
 from .serializers import (
     ActivacionSerializer,
     AlumnoSerializer,
     CapturaSerializer,
+    ComunicadoSerializer,
     CorreccionSerializer,
+    DispositivoSerializer,
+    EvaluacionHistorialSerializer,
     EvaluacionSerializer,
     FichaAlumnoSerializer,
+    HijoSerializer,
     LoginSerializer,
     datos_de_sesion,
     nombre_de,
@@ -150,19 +161,26 @@ class AlumnosView(APIView):
 
 
 class HistorialView(APIView):
-    """GET → todas las evaluaciones del alumno, de la más antigua a la más reciente."""
+    """GET → todas las evaluaciones del alumno, de la más antigua a la más reciente.
 
-    permission_classes = [IsAuthenticated, SoloEntrenador]
+    Lo usan los dos modos: el entrenador con los alumnos de sus grupos y el
+    tutor con sus hijos. Con eso la app dibuja la gráfica de progresión.
+    """
+
+    permission_classes = [IsAuthenticated]
 
     def get(self, request, pk):
-        alumno = alumno_visible(request.user, pk)
-        evaluaciones = alumno.evaluaciones.select_related(
-            "alumno", "capturada_por"
-        ).order_by("fecha")
+        alumno = (
+            alumnos_del_entrenador(request.user).filter(pk=pk).first()
+            or alumnos_del_tutor(request.user).filter(pk=pk).first()
+        )
+        if alumno is None:
+            raise NotFound("El alumno no existe.")
+        evaluaciones = alumno.evaluaciones.select_related("capturada_por").order_by("fecha")
         return Response(
             {
                 "alumno": FichaAlumnoSerializer(alumno).data,
-                "evaluaciones": EvaluacionSerializer(evaluaciones, many=True).data,
+                "evaluaciones": EvaluacionHistorialSerializer(evaluaciones, many=True).data,
             }
         )
 
@@ -193,6 +211,7 @@ class EvaluacionesView(APIView):
                     pase=datos["pase"],
                     recepcion=datos["recepcion"],
                     tiro=datos["tiro"],
+                    observaciones=datos["observaciones"],
                     capturada_por=request.user,
                     client_uuid=datos["client_uuid"],
                 )
@@ -213,7 +232,10 @@ class EvaluacionesView(APIView):
 
 
 class EvaluacionDetalleView(APIView):
-    """PATCH → corrección de pase, recepción o tiro: solo quien la capturó y solo ese día."""
+    """PATCH → corrección de calificaciones u observaciones.
+
+    Solo quien la capturó y solo el mismo día.
+    """
 
     permission_classes = [IsAuthenticated, SoloEntrenador]
 
@@ -238,7 +260,66 @@ class EvaluacionDetalleView(APIView):
         return Response(EvaluacionSerializer(evaluacion).data)
 
 
+# ---------------------------------------------------------------------------
+# Familia. Todo parte de alumnos_del_tutor(): el hijo de otro responde 404 en
+# el histórico y no aparece en mis-hijos ni en los comunicados.
+# ---------------------------------------------------------------------------
+
+
+class MisHijosView(APIView):
+    """GET → los hijos del tutor, primero los activos, con su última evaluación."""
+
+    permission_classes = [IsAuthenticated, SoloTutor]
+
+    def get(self, request):
+        hijos = (
+            alumnos_del_tutor(request.user)
+            .prefetch_related("evaluaciones__capturada_por")
+            .order_by("-activo", "nombre")
+        )
+        return Response(HijoSerializer(hijos, many=True).data)
+
+
+class ComunicadosView(APIView):
+    """GET → los avisos generales más los de las categorías de sus hijos activos."""
+
+    permission_classes = [IsAuthenticated, SoloTutor]
+
+    def get(self, request):
+        categorias = alumnos_del_tutor(request.user).filter(activo=True).values("categoria")
+        comunicados = Comunicado.objects.filter(
+            Q(categoria="") | Q(categoria__in=categorias),
+            # Uno con fecha futura está programado: todavía no se muestra.
+            publicado__lte=timezone.now(),
+        ).order_by("-publicado")
+        return Response(ComunicadoSerializer(comunicados, many=True).data)
+
+
+class DispositivosView(APIView):
+    """POST token → registra el push token de Expo del teléfono.
+
+    Si el token ya era de otro usuario, pasa al actual: es el mismo aparato y
+    ahora inició sesión alguien más. 201 si es nuevo, 200 si ya existía.
+    """
+
+    permission_classes = [IsAuthenticated]
+
+    def post(self, request):
+        datos = DispositivoSerializer(data=request.data)
+        datos.is_valid(raise_exception=True)
+        dispositivo, nuevo = Dispositivo.objects.update_or_create(
+            token=datos.validated_data["token"],
+            defaults={"usuario": request.user},
+        )
+        return Response(
+            {"token": dispositivo.token},
+            status=status.HTTP_201_CREATED if nuevo else status.HTTP_200_OK,
+        )
+
+
 def alumno_visible(usuario, pk):
+    """Alumno de los grupos del entrenador, o 404. Los hijos propios no cuentan aquí:
+    un entrenador que también es papá no captura a su hijo fuera de sus grupos."""
     alumno = alumnos_del_entrenador(usuario).filter(pk=pk).first()
     if alumno is None:
         raise NotFound("El alumno no existe.")

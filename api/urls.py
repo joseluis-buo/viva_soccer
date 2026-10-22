@@ -23,4 +23,8 @@ urlpatterns = [
         views.EvaluacionDetalleView.as_view(),
         name="api_evaluacion",
     ),
+    # Familia
+    path("mis-hijos/", views.MisHijosView.as_view(), name="api_mis_hijos"),
+    path("comunicados/", views.ComunicadosView.as_view(), name="api_comunicados"),
+    path("dispositivos/", views.DispositivosView.as_view(), name="api_dispositivos"),
 ]

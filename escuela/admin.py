@@ -1,6 +1,13 @@
 from django.contrib import admin
 
-from .models import AsignacionEntrenador, Alumno, CodigoActivacion, Evaluacion, Tutor
+from .models import (
+    AsignacionEntrenador,
+    Alumno,
+    CodigoActivacion,
+    Comunicado,
+    Evaluacion,
+    Tutor,
+)
 
 admin.site.site_header = "VIVA SOCCER — Administración"
 admin.site.site_title = "VIVA SOCCER"
@@ -112,3 +119,26 @@ class AsignacionEntrenadorAdmin(admin.ModelAdmin):
     list_display = ["entrenador", "categoria", "horario"]
     list_select_related = ["entrenador"]
     list_filter = ["categoria", "horario", "entrenador"]
+
+
+@admin.register(Comunicado)
+class ComunicadoAdmin(admin.ModelAdmin):
+    """Avisos de la app de los padres. Los publican el administrador y la secretaria."""
+
+    list_display = ["titulo", "dirigido_a", "publicado", "autor"]
+    list_select_related = ["autor"]
+    list_filter = ["categoria"]
+    search_fields = ["titulo", "cuerpo"]
+    date_hierarchy = "publicado"
+    fields = ["titulo", "cuerpo", "categoria", "publicado", "autor"]
+    readonly_fields = ["autor"]
+
+    @admin.display(description="dirigido a", ordering="categoria")
+    def dirigido_a(self, obj):
+        return obj.get_categoria_display() or "Todas las categorías"
+
+    def save_model(self, request, obj, form, change):
+        # El autor es quien lo publicó; no se elige a mano.
+        if not change:
+            obj.autor = request.user
+        super().save_model(request, obj, form, change)

@@ -8,6 +8,8 @@ CAMPO = (
     "text-text-primary outline-none focus:border-accent "
     "focus:ring-2 focus:ring-accent/20"
 )
+# Igual que CAMPO pero con alto libre, para las observaciones.
+AREA = CAMPO.replace("h-11", "py-2")
 
 
 class AlumnoForm(forms.ModelForm):
@@ -83,12 +85,15 @@ class EvaluacionForm(forms.ModelForm):
 
     class Meta:
         model = Evaluacion
-        fields = ["fecha", "pase", "recepcion", "tiro"]
+        fields = ["fecha", "pase", "recepcion", "tiro", "observaciones"]
         widgets = {
             "fecha": forms.DateInput(attrs={"class": CAMPO, "type": "date"}, format="%Y-%m-%d"),
             "pase": forms.NumberInput(attrs={"class": "nota-input", "min": 1, "max": 10}),
             "recepcion": forms.NumberInput(attrs={"class": "nota-input", "min": 1, "max": 10}),
             "tiro": forms.NumberInput(attrs={"class": "nota-input", "min": 1, "max": 10}),
+            "observaciones": forms.Textarea(
+                attrs={"class": AREA, "rows": 3, "placeholder": "Opcional"}
+            ),
         }
 
     def __init__(self, *args, alumno, **kwargs):

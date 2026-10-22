@@ -63,6 +63,17 @@ def alumnos_del_entrenador(user):
     return Alumno.objects.filter(filtro, activo=True)
 
 
+def alumnos_del_tutor(user):
+    """Los hijos del tutor: los alumnos cuyo Tutor tiene esta cuenta.
+
+    Incluye a los dados de baja: su histórico sigue siendo del papá. Toda la
+    API de Familia parte de aquí, como la del entrenador de alumnos_del_entrenador().
+    """
+    if not es_tutor(user):
+        return Alumno.objects.none()
+    return Alumno.objects.filter(tutor__usuario=user)
+
+
 def _exigir(prueba):
     """Anónimo → login. Con sesión pero sin el rol → a su pantalla de inicio.
 

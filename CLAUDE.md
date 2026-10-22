@@ -118,6 +118,29 @@ revierte todo y el código sigue vigente.
   cancha (hasta 7 días atrás) y `creada` es cuándo llegó al servidor: son
   datos distintos.
 
+### Modo Familia
+- `alumnos_del_tutor(user)` en `escuela/roles.py` es la única regla de qué ve
+  un tutor: sus hijos, **incluidos los dados de baja** (su histórico sigue
+  siendo del papá). Lo de fuera responde 404.
+- El histórico lo comparten entrenador y tutor: el alumno es visible si sale
+  en `alumnos_del_entrenador` o en `alumnos_del_tutor`. La captura y la
+  corrección solo usan la del entrenador.
+- Los comunicados que le tocan son los generales más los de las categorías de
+  sus hijos **activos**; uno con `publicado` en el futuro todavía no sale.
+- No hay modelo de temporada: la temporada es el año de la fecha de la
+  evaluación (`Evaluacion.temporada`), como en el panel web.
+
+### Observaciones y comunicados (migraciones 0009 y 0010)
+- `Evaluacion.observaciones`: nota opcional del entrenador, hasta 500
+  caracteres (`MAX_OBSERVACIONES`). Se captura igual desde la API y desde la
+  captura web (y se corrige en la ficha), para que las dos capturas no se
+  separen. El tutor la ve en el histórico junto con `capturada_por`.
+- `Comunicado` se publica desde el admin; el autor es quien lo guarda. La
+  migración 0010 da a la secretaria sus permisos.
+- `seed_demo` deja tres comunicados y algunas observaciones para la demo,
+  una mamá con cuenta activa (`5512345678` / `tutor`) y el código `CANCHA26`
+  sin canjear para mostrar la activación (ver README).
+
 ## API
 Prefijo `/api/v1/`. JSON. Autenticación JWT para el móvil; la web sigue con
 sesiones de Django.

@@ -6,7 +6,7 @@ from rest_framework.exceptions import PermissionDenied
 from rest_framework_simplejwt.serializers import TokenObtainPairSerializer
 from rest_framework_simplejwt.tokens import RefreshToken
 
-from escuela.models import Alumno, Evaluacion
+from escuela.models import MAX_OBSERVACIONES, Alumno, Comunicado, Evaluacion
 from escuela.roles import es_administrador, es_entrenador, es_secretaria, es_tutor
 
 # En orden de prioridad: el primero que aplica es el rol principal. Con él la
@@ -111,6 +111,7 @@ class EvaluacionSerializer(serializers.ModelSerializer):
             "recepcion",
             "tiro",
             "promedio",
+            "observaciones",
             "capturada_por",
             "creada",
             "client_uuid",
@@ -119,6 +120,31 @@ class EvaluacionSerializer(serializers.ModelSerializer):
 
     def get_capturada_por(self, evaluacion):
         return nombre_de(evaluacion.capturada_por)
+
+
+class EvaluacionHistorialSerializer(EvaluacionSerializer):
+    """Una evaluación del histórico, lo que necesita la gráfica de progresión.
+
+    Sin client_uuid ni creada, que solo sirven para sincronizar la captura.
+    `temporada` es la de la pestaña: el año de la fecha. Las observaciones van
+    con `capturada_por` para que el padre sepa qué entrenador las escribió.
+    """
+
+    temporada = serializers.IntegerField(read_only=True)
+
+    class Meta(EvaluacionSerializer.Meta):
+        fields = [
+            "id",
+            "fecha",
+            "temporada",
+            "pase",
+            "recepcion",
+            "tiro",
+            "promedio",
+            "observaciones",
+            "capturada_por",
+        ]
+        read_only_fields = fields
 
 
 class CapturaSerializer(serializers.Serializer):
@@ -130,6 +156,9 @@ class CapturaSerializer(serializers.Serializer):
     pase = serializers.IntegerField(min_value=1, max_value=10)
     recepcion = serializers.IntegerField(min_value=1, max_value=10)
     tiro = serializers.IntegerField(min_value=1, max_value=10)
+    observaciones = serializers.CharField(
+        max_length=MAX_OBSERVACIONES, required=False, allow_blank=True, default=""
+    )
 
     def validate_fecha(self, fecha):
         """La fecha es la del día en la cancha: puede llegar días después, pero no del futuro."""
@@ -144,11 +173,63 @@ class CapturaSerializer(serializers.Serializer):
 
 
 class CorreccionSerializer(serializers.Serializer):
-    """En una corrección solo cambian las calificaciones; alumno y fecha se quedan."""
+    """En una corrección cambian las calificaciones y la nota; alumno y fecha se quedan."""
 
     pase = serializers.IntegerField(min_value=1, max_value=10, required=False)
     recepcion = serializers.IntegerField(min_value=1, max_value=10, required=False)
     tiro = serializers.IntegerField(min_value=1, max_value=10, required=False)
+    observaciones = serializers.CharField(
+        max_length=MAX_OBSERVACIONES, required=False, allow_blank=True
+    )
+
+
+# ---------------------------------------------------------------------------
+# Familia: hijos, comunicados y dispositivos
+# ---------------------------------------------------------------------------
+
+
+class HijoSerializer(FichaAlumnoSerializer):
+    """Un hijo del tutor con su última evaluación (null si aún no tiene).
+
+    `activo` en false quiere decir que se dio de baja: por eso ya no le llegan
+    evaluaciones nuevas, aunque su histórico se sigue viendo.
+    """
+
+    categoria_nombre = serializers.CharField(source="get_categoria_display", read_only=True)
+    horario_nombre = serializers.CharField(source="get_horario_display", read_only=True)
+    ultima_evaluacion = serializers.SerializerMethodField()
+
+    class Meta(FichaAlumnoSerializer.Meta):
+        fields = FichaAlumnoSerializer.Meta.fields + [
+            "categoria_nombre",
+            "horario_nombre",
+            "activo",
+            "ultima_evaluacion",
+        ]
+
+    def get_ultima_evaluacion(self, alumno):
+        # La vista precarga las evaluaciones: se elige en Python, sin otra consulta.
+        ultima = max(alumno.evaluaciones.all(), key=lambda e: e.fecha, default=None)
+        if ultima is None:
+            return None
+        return EvaluacionHistorialSerializer(ultima).data
+
+
+class ComunicadoSerializer(serializers.ModelSerializer):
+    """`categoria` vacía quiere decir que el aviso es para todas."""
+
+    class Meta:
+        model = Comunicado
+        fields = ["id", "titulo", "cuerpo", "categoria", "publicado"]
+        read_only_fields = fields
+
+
+class DispositivoSerializer(serializers.Serializer):
+    token = serializers.RegexField(
+        r"^Expo(nent)?PushToken\[[^\]]+\]$",
+        max_length=255,
+        error_messages={"invalid": "No es un token de Expo (ExponentPushToken[...])."},
+    )
 
 
 def nombre_de(usuario):

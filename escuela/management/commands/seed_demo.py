@@ -1,19 +1,24 @@
 """Carga datos de ejemplo: 8 alumnos del diseño, su histórico de evaluaciones
-y tres usuarios demo (admin / secretaria / entrenador). Es idempotente; usa --reset para
+(algunas con observaciones), comunicados para la app, tres usuarios demo
+(admin / secretaria / entrenador), un papá con cuenta activa y un código de
+activación sin canjear. Es idempotente; usa --reset para
 borrar el padrón y volver a empezar."""
 
 import random
-from datetime import date
+from datetime import date, timedelta
 
 from django.contrib.auth import get_user_model
 from django.contrib.auth.models import Group
 from django.core.management.base import BaseCommand
 from django.db import transaction
+from django.utils import timezone
 
 from escuela.models import (
     Alumno,
     AsignacionEntrenador,
     Categoria,
+    CodigoActivacion,
+    Comunicado,
     Evaluacion,
     Horario,
     Tutor,
@@ -52,6 +57,48 @@ FECHAS = [
     date(2026, 9, 8),
 ]
 
+# Notas del entrenador en algunas evaluaciones, para que la ficha del alumno
+# en la app no se vea vacía: (alumno, fecha) → texto.
+OBSERVACIONES = {
+    ("Diego Salinas Ruiz", date(2026, 9, 8)): "Mejoró mucho el pase con la pierna izquierda.",
+    ("Diego Salinas Ruiz", date(2026, 6, 5)): "Le cuesta controlar balones altos; practicar recepción.",
+    ("Renata Ocampo Vela", date(2026, 9, 8)): "Muy buena actitud. Ya tira a portería sin miedo.",
+    ("Emiliano Cortés Nava", date(2026, 8, 27)): "Buen tiro de media distancia. Falta levantar la vista al pasar.",
+    ("Camila Herrera Sosa", date(2026, 9, 8)): "Se integró muy bien con sus compañeras.",
+}
+
+# Avisos de la app: (título, mensaje, categoría o "" para todas, hace cuántos días).
+COMUNICADOS = [
+    (
+        "Inscripciones temporada 2027",
+        "Ya están abiertas las inscripciones. Pasen a la oficina de lunes a jueves de 4 a 7 pm.",
+        "",
+        2,
+    ),
+    (
+        "Torneo relámpago de la Menor",
+        "El sábado 7 de noviembre jugamos en la Unidad Deportiva. Llegar 8:30 am con uniforme completo.",
+        Categoria.MENOR,
+        5,
+    ),
+    (
+        "Entrega de uniformes Mini",
+        "Los uniformes de la categoría Mini ya llegaron. Se entregan al final del entrenamiento.",
+        Categoria.MINI,
+        9,
+    ),
+]
+
+# Papá con cuenta ya activa, para entrar al modo Familia sin pasar por el
+# código. Inicia sesión con su teléfono sin espacios: 5512345678 / tutor.
+TUTOR_DEMO = ("Marisol Ruiz", "55 1234 5678")
+CONTRASENA_TUTOR_DEMO = "tutor"
+
+# Papá sin cuenta, con un código fijo para mostrar la activación en clase.
+# Usa solo letras y números del alfabeto de los códigos (sin 0/O ni 1/I/L).
+TUTOR_POR_ACTIVAR = ("Hugo Ocampo", "55 8871 2210")
+CODIGO_DEMO = "CANCHA26"
+
 
 class Command(BaseCommand):
     help = "Carga alumnos, evaluaciones y usuarios de ejemplo."
@@ -66,6 +113,9 @@ class Command(BaseCommand):
     @transaction.atomic
     def handle(self, *args, **options):
         if options["reset"]:
+            # Primero las cuentas de los papás: si quedaran, el teléfono seguiría
+            # ocupado como usuario y el canje del código fallaría.
+            User.objects.filter(tutor__isnull=False).delete()
             Evaluacion.objects.all().delete()
             Alumno.objects.all().delete()
             Tutor.objects.all().delete()
@@ -74,7 +124,7 @@ class Command(BaseCommand):
         for nombre in ("administrador", "secretaria", "entrenador"):
             Group.objects.get_or_create(name=nombre)
 
-        self._usuario("admin", "admin", "administrador", is_staff=True, is_superuser=True)
+        admin = self._usuario("admin", "admin", "administrador", is_staff=True, is_superuser=True)
         self._usuario("secretaria", "secretaria", "secretaria", is_staff=True)
         entrenador = self._usuario("entrenador", "entrenador", "entrenador", is_staff=True)
         for categoria, horario in GRUPOS_ENTRENADOR_DEMO:
@@ -112,14 +162,57 @@ class Command(BaseCommand):
                     },
                 )
 
+        # update() y no defaults: así también le llegan a una base ya sembrada.
+        for (nombre, fecha), texto in OBSERVACIONES.items():
+            Evaluacion.objects.filter(alumno__nombre=nombre, fecha=fecha).update(
+                observaciones=texto
+            )
+
+        for titulo, cuerpo, categoria, dias in COMUNICADOS:
+            Comunicado.objects.get_or_create(
+                titulo=titulo,
+                defaults={
+                    "cuerpo": cuerpo,
+                    "categoria": categoria,
+                    "publicado": timezone.now() - timedelta(days=dias),
+                    "autor": admin,
+                },
+            )
+
+        self._activar_tutor_demo()
+        codigo = self._codigo_demo()
+
         self.stdout.write(
             self.style.SUCCESS(
                 f"Listo: {Alumno.objects.count()} alumnos, "
-                f"{Evaluacion.objects.count()} evaluaciones. "
+                f"{Evaluacion.objects.count()} evaluaciones, "
+                f"{Comunicado.objects.count()} comunicados. "
                 "Usuarios: admin/admin, secretaria/secretaria y entrenador/entrenador "
-                "(grupos MINI y MENOR)."
+                "(grupos MINI y MENOR). "
+                f"Papá demo: 5512345678/{CONTRASENA_TUTOR_DEMO}. "
+                f"Código por canjear: {codigo.codigo} ({codigo.tutor}, "
+                f"vence {timezone.localtime(codigo.vence):%d/%m/%Y})."
             )
         )
+
+    def _activar_tutor_demo(self):
+        tutor = Tutor.objects.get(nombre=TUTOR_DEMO[0], telefono=TUTOR_DEMO[1])
+        if tutor.usuario is None:
+            # El mismo camino que en la app: canjear un código crea la cuenta.
+            CodigoActivacion.objects.create(tutor=tutor).canjear(CONTRASENA_TUTOR_DEMO)
+
+    def _codigo_demo(self):
+        """Deja CODIGO_DEMO vigente. Si ya se canjeó o venció, lo renueva."""
+        codigo = CodigoActivacion.objects.filter(codigo=CODIGO_DEMO).first()
+        if codigo is not None and not codigo.vigente:
+            codigo.delete()
+            codigo = None
+        if codigo is None:
+            tutor = Tutor.objects.get(
+                nombre=TUTOR_POR_ACTIVAR[0], telefono=TUTOR_POR_ACTIVAR[1]
+            )
+            codigo = CodigoActivacion.objects.create(tutor=tutor, codigo=CODIGO_DEMO)
+        return codigo
 
     def _usuario(self, username, password, grupo, *, is_staff=False, is_superuser=False):
         user, nuevo = User.objects.get_or_create(

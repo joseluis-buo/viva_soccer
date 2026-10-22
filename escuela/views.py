@@ -13,7 +13,7 @@ from django.utils.http import url_has_allowed_host_and_scheme
 from django.views.decorators.http import require_POST
 
 from .forms import AlumnoForm, EvaluacionForm, TutorForm
-from .models import GRUPOS, Alumno, Categoria, Evaluacion, Tutor
+from .models import GRUPOS, MAX_OBSERVACIONES, Alumno, Categoria, Evaluacion, Tutor
 from .roles import (
     es_administrador,
     es_entrenador,
@@ -447,6 +447,7 @@ def captura(request):
                 continue
             if not all(1 <= v <= 10 for v in (pase, recepcion, tiro)):
                 continue
+            observaciones = request.POST.get(f"observaciones_{alumno.id}", "").strip()
             Evaluacion.objects.update_or_create(
                 alumno=alumno,
                 fecha=fecha,
@@ -454,6 +455,7 @@ def captura(request):
                     "pase": pase,
                     "recepcion": recepcion,
                     "tiro": tiro,
+                    "observaciones": observaciones[:MAX_OBSERVACIONES],
                     "capturada_por": request.user,
                 },
             )
@@ -471,6 +473,7 @@ def captura(request):
                 "pase": e.pase if e else "",
                 "recepcion": e.recepcion if e else "",
                 "tiro": e.tiro if e else "",
+                "observaciones": e.observaciones if e else "",
                 "completa": e is not None,
             }
         )
@@ -487,5 +490,6 @@ def captura(request):
             "capturados": capturados,
             "total": len(filas),
             "pct": round(capturados / len(filas) * 100) if filas else 0,
+            "max_observaciones": MAX_OBSERVACIONES,
         },
     )

@@ -2,7 +2,7 @@
 
 from rest_framework.permissions import BasePermission
 
-from escuela.roles import es_entrenador
+from escuela.roles import es_entrenador, es_tutor
 
 
 class SoloEntrenador(BasePermission):
@@ -12,3 +12,12 @@ class SoloEntrenador(BasePermission):
 
     def has_permission(self, request, view):
         return es_entrenador(request.user)
+
+
+class SoloTutor(BasePermission):
+    """Padres con cuenta en la app. El administrador no lo hereda: recibe 403."""
+
+    message = "Esta sección es solo para padres de familia."
+
+    def has_permission(self, request, view):
+        return es_tutor(request.user)

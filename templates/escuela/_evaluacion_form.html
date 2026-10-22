@@ -40,6 +40,11 @@
         </label>
       </div>
       <p class="mt-2 text-xs text-text-muted">Calificaciones del 1 al 10.</p>
+
+      <label class="mt-4 flex flex-col gap-2">
+        <span class="etiqueta">Observaciones</span>
+        {{ form.observaciones }}
+      </label>
       {% for campo in form %}{% if campo.name != "fecha" %}{% for e in campo.errors %}
       <p class="mt-1 text-xs text-danger">{{ campo.label|capfirst }}: {{ e }}</p>
       {% endfor %}{% endif %}{% endfor %}

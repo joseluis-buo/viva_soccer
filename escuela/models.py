@@ -98,6 +98,9 @@ class Alumno(models.Model):
         return f"VS-{self.pk:04d}" if self.pk else "VS-----"
 
 
+MAX_OBSERVACIONES = 500
+
+
 class Evaluacion(models.Model):
     alumno = models.ForeignKey(
         Alumno,
@@ -122,6 +125,10 @@ class Evaluacion(models.Model):
         blank=True,
         related_name="evaluaciones_capturadas",
         verbose_name="capturada por",
+    )
+    # Nota libre del entrenador. El padre la ve en el histórico junto con quién la escribió.
+    observaciones = models.TextField(
+        "observaciones", max_length=MAX_OBSERVACIONES, blank=True
     )
     # `fecha` es el día en que se evaluó en la cancha; `creada` es cuándo llegó
     # al servidor. Con la captura sin conexión pueden ser días distintos.
@@ -152,6 +159,11 @@ class Evaluacion(models.Model):
         if any(v is None for v in valores):
             return None
         return round(sum(valores) / 3, 1)
+
+    @property
+    def temporada(self):
+        """La temporada es el año de la evaluación, igual que en el panel web."""
+        return self.fecha.year if self.fecha else None
 
 
 class AsignacionEntrenador(models.Model):
