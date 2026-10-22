@@ -36,17 +36,39 @@ SECRET_KEY = os.environ.get(
     'django-insecure-!cfyrgs$afi0v6aa+u#=_d_8(09##sohi5t$2m7vbkg9yxn+-q',
 )
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = os.environ.get('DJANGO_DEBUG', '1') == '1'
+# Railway define RAILWAY_ENVIRONMENT_NAME en sus contenedores. Ahí DEBUG queda
+# apagado aunque alguien ponga DJANGO_DEBUG=1: con DEBUG las páginas de error
+# muestran datos de los alumnos (menores) a cualquiera.
+EN_RAILWAY = 'RAILWAY_ENVIRONMENT_NAME' in os.environ
+DEBUG = not EN_RAILWAY and os.environ.get('DJANGO_DEBUG', '1') == '1'
 
 # En producción la llave de respaldo es pública (el repo lo es): exigir la variable.
 if not DEBUG and 'DJANGO_SECRET_KEY' not in os.environ:
     raise ImproperlyConfigured('Falta DJANGO_SECRET_KEY con DEBUG apagado.')
 
-ALLOWED_HOSTS = os.environ.get('DJANGO_ALLOWED_HOSTS', '127.0.0.1,localhost').split(',')
 
-CSRF_TRUSTED_ORIGINS = [
-    o for o in os.environ.get('DJANGO_CSRF_TRUSTED', '').split(',') if o
-]
+
+def lista_del_entorno(nombre, default=''):
+    """Lee una variable con valores separados por coma, sin espacios ni vacíos."""
+    return [v.strip() for v in os.environ.get(nombre, default).split(',') if v.strip()]
+
+
+if not DEBUG and 'DJANGO_ALLOWED_HOSTS' not in os.environ:
+    raise ImproperlyConfigured(
+        'Falta DJANGO_ALLOWED_HOSTS con DEBUG apagado (ej. vivasoccer.up.railway.app).'
+    )
+
+ALLOWED_HOSTS = lista_del_entorno('DJANGO_ALLOWED_HOSTS', '127.0.0.1,localhost')
+
+# Con esquema: https://vivasoccer.up.railway.app. Sin él, el login web da 403.
+CSRF_TRUSTED_ORIGINS = lista_del_entorno('DJANGO_CSRF_TRUSTED')
+
+if not DEBUG:
+    # Railway atiende el HTTPS y le pasa la petición a gunicorn por HTTP; este
+    # encabezado le dice a Django que el original sí venía cifrado.
+    SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
+    SESSION_COOKIE_SECURE = True
+    CSRF_COOKIE_SECURE = True
 
 # Application definition
 
@@ -213,6 +235,23 @@ STATICFILES_DIRS = [BASE_DIR / 'static']
 
 #Carpeta donde collecstatic junta todos los estaticos para produccion
 STATIC_ROOT = BASE_DIR / 'staticfiles'
+
+# WhiteNoise sirve los estáticos desde gunicorn, comprimidos y con un hash en el
+# nombre (tailwind.4f2a….css): el navegador los guarda en caché sin riesgo de
+# quedarse con una versión vieja después de un despliegue.
+STORAGES = {
+    'default': {'BACKEND': 'django.core.files.storage.FileSystemStorage'},
+    'staticfiles': {
+        'BACKEND': 'whitenoise.storage.CompressedManifestStaticFilesStorage',
+    },
+}
+
+# Las pruebas corren con DEBUG apagado y sin collectstatic: el manifiesto con
+# los hashes no existe, así que usan el almacenamiento simple.
+if sys.argv[1:2] == ['test']:
+    STORAGES['staticfiles'] = {
+        'BACKEND': 'django.contrib.staticfiles.storage.StaticFilesStorage',
+    }
 
 # Default primary key field type
 # https://docs.djangoproject.com/en/5.2/ref/settings/#default-auto-field

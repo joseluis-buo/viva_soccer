@@ -9,12 +9,19 @@ Cubren lo que una entrega de avance necesita demostrar:
 - funciones de secretaria: tutores, baja, corrección de evaluaciones y boletas,
 - app móvil: cuenta del tutor, sus hijos y códigos de activación de un solo uso,
 - grupos asignados a cada entrenador,
-- observaciones de las evaluaciones y comunicados en el admin.
+- observaciones de las evaluaciones y comunicados en el admin,
+- configuración de producción (Railway) leída del entorno.
 """
 
+import os
+import subprocess
+import sys
 from datetime import date, timedelta
 from io import StringIO
+from pathlib import Path
 from unittest import mock
+
+from dotenv import dotenv_values
 
 from django.contrib.auth.models import Group, User
 from django.core.management import CommandError, call_command
@@ -719,3 +726,56 @@ class ResetProtegidoTests(TestCase):
             with self.assertRaises(CommandError):
                 self.reset()
         self.assertNoSeBorroNada()
+
+
+class ConfiguracionProduccionTests(TestCase):
+    """settings.py se importa en otro proceso con el entorno de Railway simulado."""
+
+    RAIZ = Path(__file__).resolve().parent.parent
+    ENTORNO_RAILWAY = {
+        "RAILWAY_ENVIRONMENT_NAME": "production",
+        "DJANGO_SECRET_KEY": "llave-de-prueba",
+        "DATABASE_URL": "postgresql://u:p@ep-prueba.neon.tech/neondb",
+        "DJANGO_ALLOWED_HOSTS": "vivasoccer.up.railway.app",
+        "DJANGO_CSRF_TRUSTED": "https://vivasoccer.up.railway.app",
+    }
+    VARIABLES_DEL_PROYECTO = ["DJANGO_DEBUG", *ENTORNO_RAILWAY]
+
+    def importar_settings(self, **variables):
+        """Importa settings con solo `variables` (más las del .env) y devuelve el proceso."""
+        entorno = {
+            k: v for k, v in os.environ.items() if k not in self.VARIABLES_DEL_PROYECTO
+        }
+        entorno.update(variables)
+        codigo = (
+            "import vivasoccer.settings as s; "
+            "print(s.DEBUG, s.ALLOWED_HOSTS, s.CSRF_TRUSTED_ORIGINS, "
+            "s.SESSION_COOKIE_SECURE)"
+        )
+        return subprocess.run(
+            [sys.executable, "-c", codigo],
+            cwd=self.RAIZ, env=entorno, capture_output=True, text=True,
+        )
+
+    def test_en_railway_debug_queda_apagado_aunque_pidan_encenderlo(self):
+        proceso = self.importar_settings(**self.ENTORNO_RAILWAY, DJANGO_DEBUG="1")
+        self.assertEqual(proceso.returncode, 0, proceso.stderr)
+        self.assertEqual(
+            proceso.stdout.strip(),
+            "False ['vivasoccer.up.railway.app'] "
+            "['https://vivasoccer.up.railway.app'] True",
+        )
+
+    def test_sin_allowed_hosts_en_produccion_falla_con_mensaje_claro(self):
+        if "DJANGO_ALLOWED_HOSTS" in dotenv_values(self.RAIZ / ".env"):
+            self.skipTest("El .env local define DJANGO_ALLOWED_HOSTS.")
+        entorno = dict(self.ENTORNO_RAILWAY)
+        del entorno["DJANGO_ALLOWED_HOSTS"]
+        proceso = self.importar_settings(**entorno)
+        self.assertNotEqual(proceso.returncode, 0)
+        self.assertIn("Falta DJANGO_ALLOWED_HOSTS", proceso.stderr)
+
+    def test_listas_separadas_por_coma_ignoran_espacios(self):
+        entorno = {**self.ENTORNO_RAILWAY, "DJANGO_ALLOWED_HOSTS": " a.up.railway.app , b.mx ,"}
+        proceso = self.importar_settings(**entorno)
+        self.assertIn("['a.up.railway.app', 'b.mx']", proceso.stdout)

@@ -7,6 +7,7 @@ db.sqlite3
 
 # Tailwind: binario y CSS generado
 /bin/tailwindcss
+/bin/tailwindcss.exe
 /static/css/tailwind.css
 
 # Miniatura generada por la herramienta de diseño
