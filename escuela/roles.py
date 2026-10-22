@@ -1,4 +1,4 @@
-"""Roles del sistema. Se apoyan en los grupos creados en las migraciones 0002 y 0004."""
+"""Roles del sistema. Se apoyan en los grupos creados en las migraciones 0002, 0004 y 0006."""
 
 from functools import wraps
 
@@ -28,6 +28,15 @@ def es_entrenador(user):
     )
 
 
+def es_tutor(user):
+    """Padre con cuenta en la app móvil: miembro del grupo 'tutor'.
+
+    A diferencia de los otros roles, el administrador no lo hereda: ser tutor
+    no es un permiso más, es ser el papá de alumnos concretos (ver Tutor.usuario).
+    """
+    return user.is_authenticated and user.groups.filter(name="tutor").exists()
+
+
 def _exigir(prueba):
     """Anónimo → login. Con sesión pero sin el rol → a su pantalla de inicio.
 
@@ -55,3 +64,4 @@ def _exigir(prueba):
 solo_administrador = _exigir(es_administrador)
 solo_secretaria = _exigir(es_secretaria)
 solo_entrenador = _exigir(es_entrenador)
+solo_tutor = _exigir(es_tutor)

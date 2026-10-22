@@ -1,6 +1,6 @@
 from django.contrib import admin
 
-from .models import Alumno, Evaluacion, Tutor
+from .models import Alumno, CodigoActivacion, Evaluacion, Tutor
 
 admin.site.site_header = "VIVA SOCCER — Administración"
 admin.site.site_title = "VIVA SOCCER"
@@ -53,11 +53,35 @@ class AlumnoInline(admin.TabularInline):
     show_change_link = True
 
 
+class CodigoActivacionInline(admin.TabularInline):
+    """Desde la ficha del tutor se genera su código: basta con agregar una fila."""
+
+    model = CodigoActivacion
+    extra = 0
+    fields = ["codigo", "creado", "vence", "usado"]
+    readonly_fields = ["codigo", "creado", "usado"]
+
+
 @admin.register(Tutor)
 class TutorAdmin(admin.ModelAdmin):
-    list_display = ["nombre", "telefono", "correo"]
+    list_display = ["nombre", "telefono", "correo", "tiene_cuenta"]
     search_fields = ["nombre", "telefono", "correo"]
-    inlines = [AlumnoInline]
+    # La cuenta la crea el canje del código, no se elige a mano.
+    readonly_fields = ["usuario"]
+    inlines = [AlumnoInline, CodigoActivacionInline]
+
+    @admin.display(description="cuenta de la app", boolean=True)
+    def tiene_cuenta(self, obj):
+        return obj.usuario_id is not None
+
+
+@admin.register(CodigoActivacion)
+class CodigoActivacionAdmin(admin.ModelAdmin):
+    list_display = ["codigo", "tutor", "creado", "vence", "usado"]
+    list_select_related = ["tutor"]
+    search_fields = ["codigo", "tutor__nombre", "tutor__telefono"]
+    autocomplete_fields = ["tutor"]
+    readonly_fields = ["codigo", "creado", "usado"]
 
 
 @admin.register(Evaluacion)

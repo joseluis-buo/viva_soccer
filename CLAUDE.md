@@ -4,9 +4,9 @@ App web para gestionar una escuela de fútbol infantil en Tijuana.
 
 Ahora se le agrega una **API REST** para que una app móvil (proyecto hermano
 `vsoccer-movil`, en React Native + Expo) comparta la misma base de datos en la
-nube. La web la sigue usando el administrador; la app móvil la usan los
-entrenadores, para capturar desde la cancha, y los padres de familia, para
-consultar el desempeño de sus hijos.
+nube. La web la siguen usando el administrador, la secretaria y los
+entrenadores; la app móvil la usan los entrenadores, para capturar desde la
+cancha, y los padres de familia, para consultar el desempeño de sus hijos.
 
 ## Stack
 - Python 3.12, Django 5.x
@@ -17,13 +17,25 @@ consultar el desempeño de sus hijos.
 - Django REST Framework + djangorestframework-simplejwt (para la API móvil)
 
 ## Dominio
-- Alumnos menores de edad, con tutor y teléfono de contacto
+- Alumnos menores de edad. Cada alumno apunta a un `Tutor` con llave
+  foránea (nombre, teléfono y correo del padre); un tutor puede tener varios
+  hijos en la escuela
 - Tres categorías por edad: MINI, MENOR, MAYOR
 - Cada categoría tiene dos horarios: "Lunes y Miércoles" o "Martes y Jueves"
 - Cada alumno se evalúa en PASE, RECEPCIÓN y TIRO, escala 1-10
 - Las evaluaciones se registran por fecha, hay histórico y progresión
-- Tres roles: administrador (padrón completo), entrenador (captura) y
-  tutor (consulta, solo desde la app móvil)
+- Cuatro roles, cada uno un grupo de Django, definidos en `escuela/roles.py`
+  con su función `es_<rol>` y su decorador `solo_<rol>`:
+  - **administrador**: todo. También cuenta como secretaria y entrenador.
+  - **secretaria**: padrón (alta, edición, baja y reactivación de alumnos,
+    conservando su histórico), tutores (alta y edición; no se elimina un
+    tutor con alumnos), corrección y borrado de evaluaciones (respetando la
+    de una por fecha), boletas individuales y de grupo, y en el admin de
+    Django los códigos de activación de los tutores. No entra al panel ni a
+    la captura.
+  - **entrenador**: captura de evaluaciones.
+  - **tutor**: consulta, solo desde la app móvil. El administrador no lo
+    hereda: ser tutor es ser el padre de alumnos concretos, no un permiso.
 
 ## Reglas
 - Todo en español: modelos, campos, vistas, comentarios, UI
@@ -51,23 +63,45 @@ consultar el desempeño de sus hijos.
   debe pasar antes de dar por terminado cualquier trabajo.
 
 ## Modelos nuevos
-Ya existen `Alumno`, `Evaluacion`, `Categoria`, `Horario` y los roles en
-`escuela/roles.py`.
+Ya existen `Tutor`, `Alumno`, `Evaluacion`, `Categoria`, `Horario` y los roles
+en `escuela/roles.py`.
 
-Se agregan para la versión móvil:
+Se agregan para la versión móvil (migraciones 0005 y 0006):
 
-- `CuentaTutor` — la cuenta con la que el padre inicia sesión, vinculada a un
-  `User`, con relación N:M a `Alumno`. **Ojo:** no confundir con los datos de
-  tutor y teléfono que ya guarda `Alumno` como texto. Aquellos son el contacto
-  de la escuela; este es el acceso a la app. Un padre puede tener varios
-  hijos y un alumno puede tener más de un tutor con cuenta.
-- `CodigoActivacion` — código de un solo uso que la escuela entrega al padre
-  para que cree su contraseña. **Los padres no se registran solos**: se trata
-  de información de menores.
+- `Tutor.usuario` — `OneToOneField` opcional a `User`: la cuenta con la que
+  ese tutor entra a la app. No hay un modelo aparte para la cuenta: el padre
+  del padrón es el mismo que inicia sesión, y sus hijos son los alumnos que
+  ya lo tienen asignado (`request.user.tutor.alumnos`). Como `Alumno.tutor`
+  es una sola llave foránea, **cada alumno tiene un solo tutor con acceso a
+  la app**. Si se borra el usuario, el tutor y sus hijos se conservan.
+- `CodigoActivacion` — código de un solo uso, ligado a un `Tutor`, que la
+  escuela entrega al padre para que cree su contraseña. **Los padres no se
+  registran solos**: se trata de información de menores.
 - `Dispositivo` — token de notificaciones push de Expo, ligado a un `User`.
+  El token es único: si otro usuario inicia sesión en el mismo celular, se
+  le reasigna.
 - `Comunicado` — aviso de la escuela, opcionalmente dirigido a una categoría.
 
-El rol `tutor` se suma a `roles.py` con su decorador, igual que los existentes.
+La migración 0006 crea el grupo `tutor` (sin permisos de modelo; solo usa la
+API) y da a la secretaria los permisos de `CodigoActivacion`.
+
+### Canje de códigos
+1. La secretaria o el administrador genera el código desde la ficha del tutor
+   en el admin de Django. Son 8 caracteres sin los que se confunden
+   (0/O, 1/I/L) y vencen a los 7 días (`DIAS_VIGENCIA_CODIGO`).
+2. El padre lo canjea con `codigo.canjear(contrasena)`, que en una sola
+   transacción:
+   - gasta el código con un UPDATE condicionado a que no se haya usado ni
+     vencido; si dos peticiones llegan a la vez, solo una gana y la otra
+     recibe `CodigoYaUsado`;
+   - si el tutor no tiene cuenta, la crea con su teléfono sin espacios como
+     usuario (`5512345678`), que es con lo que inicia sesión;
+   - fija la contraseña, activa la cuenta y la agrega al grupo `tutor`.
+3. Si el padre olvida su contraseña, se le genera otro código; canjearlo solo
+   cambia la contraseña de la cuenta que ya tiene.
+
+Si algo falla (por ejemplo, el teléfono ya está ocupado como usuario), se
+revierte todo y el código sigue vigente.
 
 ## API
 Prefijo `/api/v1/`. JSON. Autenticación JWT para el móvil; la web sigue con

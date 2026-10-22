@@ -6,19 +6,29 @@ Cubren lo que una entrega de avance necesita demostrar:
 - validación del teléfono,
 - separación de accesos entre administrador, secretaria y entrenador,
 - guardado de la pantalla de captura,
-- funciones de secretaria: tutores, baja, corrección de evaluaciones y boletas.
+- funciones de secretaria: tutores, baja, corrección de evaluaciones y boletas,
+- app móvil: cuenta del tutor, sus hijos y códigos de activación de un solo uso.
 """
 
-from datetime import date
+from datetime import date, timedelta
 
 from django.contrib.auth.models import Group, User
 from django.core.exceptions import ValidationError
 from django.db import IntegrityError, transaction
 from django.test import TestCase
 from django.urls import reverse
+from django.utils import timezone
 
-from .models import Alumno, Categoria, Evaluacion, Horario, Tutor
-from .roles import es_administrador, es_entrenador, es_secretaria
+from .models import (
+    Alumno,
+    Categoria,
+    CodigoActivacion,
+    CodigoYaUsado,
+    Evaluacion,
+    Horario,
+    Tutor,
+)
+from .roles import es_administrador, es_entrenador, es_secretaria, es_tutor
 
 
 def crear_tutor(**extra):
@@ -110,6 +120,18 @@ class RolesTests(TestCase):
         self.assertFalse(es_administrador(self.suelto))
         self.assertFalse(es_secretaria(self.suelto))
         self.assertFalse(es_entrenador(self.suelto))
+        self.assertFalse(es_tutor(self.suelto))
+
+    def test_tutor_no_tiene_roles_de_la_escuela(self):
+        tutor = usuario_con_grupo("papa", "tutor")
+        self.assertTrue(es_tutor(tutor))
+        self.assertFalse(es_administrador(tutor))
+        self.assertFalse(es_secretaria(tutor))
+        self.assertFalse(es_entrenador(tutor))
+
+    def test_administrador_no_es_tutor(self):
+        # Ser tutor es ser papá de alumnos concretos, no un permiso que se hereda.
+        self.assertFalse(es_tutor(self.admin))
 
     def test_administrador_es_tambien_secretaria(self):
         self.assertTrue(es_secretaria(self.admin))
@@ -336,3 +358,108 @@ class SecretariaTests(TestCase):
         self.assertContains(respuesta, self.tutor.nombre)
         respuesta = self.client.get(reverse("boletas_grupo") + "?grupo=MENOR-MAR_JUE")
         self.assertContains(respuesta, self.alumno.nombre)
+
+
+
+class CuentaTutorTests(TestCase):
+    def test_hijos_del_tutor_son_los_alumnos_que_ya_lo_tienen_asignado(self):
+        tutor = crear_tutor()
+        diego = crear_alumno(nombre="Diego Salinas Ruiz", tutor=tutor)
+        sofia = crear_alumno(nombre="Sofía Salinas Ruiz", tutor=tutor)
+        crear_alumno(nombre="Otro Niño")  # con otro tutor
+        CodigoActivacion.objects.create(tutor=tutor).canjear("cancha-2026")
+        usuario = User.objects.get(username="5512345678")
+        self.assertQuerySetEqual(usuario.tutor.alumnos.all(), [diego, sofia], ordered=False)
+
+    def test_tutor_sin_cuenta_por_omision(self):
+        self.assertIsNone(crear_tutor().usuario)
+
+    def test_un_usuario_solo_puede_ser_cuenta_de_un_tutor(self):
+        usuario = User.objects.create_user("5512345678")
+        crear_tutor(usuario=usuario)
+        with self.assertRaises(IntegrityError), transaction.atomic():
+            crear_tutor(nombre="Otra Persona", usuario=usuario)
+
+    def test_borrar_la_cuenta_no_borra_al_tutor_ni_a_sus_hijos(self):
+        tutor = crear_tutor()
+        alumno = crear_alumno(tutor=tutor)
+        usuario = CodigoActivacion.objects.create(tutor=tutor).canjear("cancha-2026")
+        usuario.delete()
+        tutor.refresh_from_db()
+        self.assertIsNone(tutor.usuario)
+        self.assertQuerySetEqual(tutor.alumnos.all(), [alumno])
+
+
+class CodigoActivacionTests(TestCase):
+    def setUp(self):
+        self.tutor = crear_tutor()
+        self.codigo = CodigoActivacion.objects.create(tutor=self.tutor)
+
+    def test_codigo_se_genera_solo_y_sin_caracteres_confusos(self):
+        self.assertEqual(len(self.codigo.codigo), 8)
+        self.assertFalse(set(self.codigo.codigo) & set("01OIL"))
+        self.assertTrue(self.codigo.vigente)
+
+    def test_canjear_crea_la_cuenta_con_el_telefono_y_rol_tutor(self):
+        usuario = self.codigo.canjear("cancha-2026")
+        self.tutor.refresh_from_db()
+        self.assertEqual(self.tutor.usuario, usuario)
+        self.assertEqual(usuario.username, "5512345678")
+        self.assertTrue(usuario.is_active)
+        self.assertTrue(usuario.check_password("cancha-2026"))
+        self.assertTrue(es_tutor(usuario))
+        self.assertFalse(self.codigo.vigente)
+
+    def test_codigo_nuevo_cambia_la_contrasena_de_la_cuenta_existente(self):
+        # Si el padre olvida su contraseña, la escuela le da otro código.
+        usuario = self.codigo.canjear("cancha-2026")
+        otro = CodigoActivacion.objects.create(tutor=self.tutor)
+        self.assertEqual(otro.canjear("nueva-clave"), usuario)
+        usuario.refresh_from_db()
+        self.assertTrue(usuario.check_password("nueva-clave"))
+        self.assertEqual(User.objects.filter(username="5512345678").count(), 1)
+
+    def test_codigo_no_se_puede_usar_dos_veces(self):
+        self.codigo.canjear("cancha-2026")
+        with self.assertRaises(CodigoYaUsado):
+            self.codigo.canjear("otra-clave")
+        self.tutor.refresh_from_db()
+        self.assertTrue(self.tutor.usuario.check_password("cancha-2026"))
+
+    def test_segundo_uso_falla_aunque_se_cargue_de_nuevo_de_la_base(self):
+        # Simula dos peticiones que leyeron el código antes de que se usara.
+        copia = CodigoActivacion.objects.get(pk=self.codigo.pk)
+        self.codigo.canjear("cancha-2026")
+        with self.assertRaises(CodigoYaUsado):
+            copia.canjear("otra-clave")
+        self.tutor.refresh_from_db()
+        self.assertTrue(self.tutor.usuario.check_password("cancha-2026"))
+
+    def test_codigo_vencido_no_se_puede_usar(self):
+        self.codigo.vence = timezone.now() - timedelta(minutes=1)
+        self.codigo.save()
+        with self.assertRaises(CodigoYaUsado):
+            self.codigo.canjear("cancha-2026")
+        self.tutor.refresh_from_db()
+        self.assertIsNone(self.tutor.usuario)
+
+    def test_si_falla_la_creacion_de_la_cuenta_el_codigo_sigue_vigente(self):
+        # Otro usuario ya ocupa ese teléfono como nombre de usuario.
+        User.objects.create_user("5512345678")
+        with self.assertRaises(IntegrityError):
+            self.codigo.canjear("cancha-2026")
+        self.codigo.refresh_from_db()
+        self.assertTrue(self.codigo.vigente)
+
+
+class AdminAppMovilTests(TestCase):
+    def test_secretaria_puede_gestionar_codigos_en_el_admin(self):
+        secretaria = usuario_con_grupo("sec", "secretaria")
+        secretaria.is_staff = True
+        secretaria.save()
+        self.client.force_login(secretaria)
+        tutor = crear_tutor()
+        respuesta = self.client.get(reverse("admin:escuela_tutor_change", args=[tutor.pk]))
+        self.assertEqual(respuesta.status_code, 200)
+        respuesta = self.client.get(reverse("admin:escuela_codigoactivacion_add"))
+        self.assertEqual(respuesta.status_code, 200)

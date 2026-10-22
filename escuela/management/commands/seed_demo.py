@@ -59,7 +59,7 @@ class Command(BaseCommand):
             Group.objects.get_or_create(name=nombre)
 
         self._usuario("admin", "admin", "administrador", is_staff=True, is_superuser=True)
-        self._usuario("secretaria", "secretaria", "secretaria")
+        self._usuario("secretaria", "secretaria", "secretaria", is_staff=True)
         entrenador = self._usuario("entrenador", "entrenador", "entrenador", is_staff=True)
 
         rnd = random.Random(2026)  # determinista: re-ejecutar da los mismos números
