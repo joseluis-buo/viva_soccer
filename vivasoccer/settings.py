@@ -12,10 +12,17 @@ https://docs.djangoproject.com/en/5.2/ref/settings/
 
 import os
 from pathlib import Path
+
+import dj_database_url
+from dotenv import load_dotenv
 from django.core.exceptions import ImproperlyConfigured
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
+
+# En desarrollo las variables salen de .env. Si no existe (producción) no pasa
+# nada, y las que ya trae el entorno nunca se sobrescriben.
+load_dotenv(BASE_DIR / '.env')
 
 
 # Quick-start development settings - unsuitable for production
@@ -86,11 +93,17 @@ WSGI_APPLICATION = 'vivasoccer.wsgi.application'
 # Database
 # https://docs.djangoproject.com/en/5.2/ref/settings/#databases
 
+# En la nube la base sale de DATABASE_URL (Neon). Sin ella, en desarrollo se usa
+# SQLite local; en producción (DEBUG apagado) es un error de configuración.
+if not DEBUG and 'DATABASE_URL' not in os.environ:
+    raise ImproperlyConfigured('Falta DATABASE_URL con DEBUG apagado.')
+
 DATABASES = {
-    'default': {
-        'ENGINE': 'django.db.backends.sqlite3',
-        'NAME': BASE_DIR / 'db.sqlite3',
-    }
+    'default': dj_database_url.config(
+        default=f"sqlite:///{BASE_DIR / 'db.sqlite3'}",
+        conn_max_age=600,
+        conn_health_checks=True,
+    )
 }
 
 

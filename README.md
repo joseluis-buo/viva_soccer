@@ -7,7 +7,7 @@ por temporada.
 ## Stack
 
 - Python 3.12, Django 5.2
-- SQLite en desarrollo (PostgreSQL en producción)
+- SQLite en desarrollo, PostgreSQL administrado (Neon) en la nube
 - HTMX para la interactividad, sin build de JS
 - Tailwind CSS 3.4 (binario standalone, sin Node)
 - Chart.js para las gráficas
@@ -30,17 +30,41 @@ pip install -r requirements.txt
 # 2. Compilar el CSS de Tailwind (genera static/css/tailwind.css)
 ./bin/tailwindcss -i static/src/input.css -o static/css/tailwind.css --minify
 
-# 3. Base de datos
+# 3. Variables de entorno (ver "Configuración" abajo)
+cp .env.example .env    # y pon la contraseña real
+
+# 4. Base de datos
 python manage.py migrate
 
-# 4. Datos de ejemplo + usuarios demo (8 alumnos con histórico de evaluaciones)
+# 5. Datos de ejemplo + usuarios demo (8 alumnos con histórico de evaluaciones)
 python manage.py seed_demo
 
-# 5. Servidor de desarrollo
+# 6. Servidor de desarrollo
 python manage.py runserver
 ```
 
 Abre http://127.0.0.1:8000/ y entra con uno de los usuarios demo.
+
+## Configuración
+
+`settings.py` lee estas variables de entorno:
+
+| Variable                 | Para qué                                   | Si falta                                   |
+|--------------------------|--------------------------------------------|--------------------------------------------|
+| `DATABASE_URL`           | Conexión a PostgreSQL (Neon)               | SQLite local; error si `DEBUG` está apagado |
+| `DJANGO_SECRET_KEY`      | Llave secreta de Django                    | Llave de desarrollo; error si `DEBUG` está apagado |
+| `DJANGO_DEBUG`           | `1` encendido, `0` apagado                 | Encendido                                  |
+| `DJANGO_ALLOWED_HOSTS`   | Hosts permitidos, separados por coma       | `127.0.0.1,localhost`                      |
+| `DJANGO_CSRF_TRUSTED`    | Orígenes de confianza para CSRF            | Ninguno                                    |
+
+**En desarrollo** se ponen en un archivo `.env` en la raíz (copia de
+`.env.example`), que `settings.py` carga al arrancar con `python-dotenv`. El
+`.env` tiene la contraseña real y está en `.gitignore`: nunca se sube.
+
+**En producción el `.env` no se usa.** Las variables las da la plataforma donde
+corre la app (su panel de variables de entorno). Si por error hubiera un `.env`,
+las variables de la plataforma tienen prioridad: `load_dotenv` no sobrescribe
+las que ya existen.
 
 ## Usuarios demo
 
