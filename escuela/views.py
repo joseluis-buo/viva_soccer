@@ -13,7 +13,7 @@ from django.utils.http import url_has_allowed_host_and_scheme
 from django.views.decorators.http import require_POST
 
 from .forms import AlumnoForm, EvaluacionForm, TutorForm
-from .models import Alumno, Categoria, Evaluacion, Horario, Tutor
+from .models import GRUPOS, Alumno, Categoria, Evaluacion, Tutor
 from .roles import (
     es_administrador,
     es_entrenador,
@@ -22,14 +22,6 @@ from .roles import (
     solo_entrenador,
     solo_secretaria,
 )
-
-# Los seis grupos (categoría + horario) que se usan en filtros y captura.
-GRUPOS = [
-    (f"{c.value}-{h.value}", f"{c.label} · {h.label}")
-    for c in Categoria
-    for h in Horario
-]
-
 
 def _redondear(valor):
     return round(valor, 1) if valor is not None else 0.0

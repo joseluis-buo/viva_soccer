@@ -56,6 +56,7 @@ Abre http://127.0.0.1:8000/ y entra con uno de los usuarios demo.
 | `DJANGO_DEBUG`           | `1` encendido, `0` apagado                 | Encendido                                  |
 | `DJANGO_ALLOWED_HOSTS`   | Hosts permitidos, separados por coma       | `127.0.0.1,localhost`                      |
 | `DJANGO_CSRF_TRUSTED`    | Orígenes de confianza para CSRF            | Ninguno                                    |
+| `TEST_POSTGRES`          | `1` corre las pruebas contra `DATABASE_URL` | Pruebas en SQLite en memoria              |
 
 **En desarrollo** se ponen en un archivo `.env` en la raíz (copia de
 `.env.example`), que `settings.py` carga al arrancar con `python-dotenv`. El
@@ -101,13 +102,25 @@ Los colores y tipografías salen de `tailwind.config.js` (tokens tomados de
 ## Pruebas
 
 ```bash
-python manage.py test
+python manage.py test                      # SQLite en memoria (lo normal)
+TEST_POSTGRES=1 python manage.py test      # contra PostgreSQL (DATABASE_URL)
 ```
+
+Por omisión las pruebas usan **SQLite en memoria**, aunque el `.env` tenga
+`DATABASE_URL`: tardan segundos y nunca tocan Neon. No hay que exportar nada.
+
+Con `TEST_POSTGRES=1` corren contra el servidor de `DATABASE_URL`. Django crea
+ahí una base aparte (`test_<nombre>`) y la borra al terminar, así que no toca
+los datos reales, pero tarda un par de minutos. Conviene correrlas así antes de
+una entrega o al tocar algo que dependa del motor (restricciones, transacciones,
+el UPDATE condicionado del canje de códigos). Si falta `DATABASE_URL`, falla
+con un mensaje claro.
 
 Cubren el cálculo de promedio y folio, la restricción de una evaluación por
 alumno y fecha, la validación del teléfono, la separación de accesos por rol,
-el guardado de la pantalla de captura y las funciones de secretaria (tutores,
-baja, corrección de evaluaciones y boletas).
+el guardado de la pantalla de captura, las funciones de secretaria (tutores,
+baja, corrección de evaluaciones y boletas) y la API móvil (login con JWT,
+renovación de tokens y activación de tutores).
 
 ## Estructura
 

@@ -11,6 +11,8 @@ https://docs.djangoproject.com/en/5.2/ref/settings/
 """
 
 import os
+import sys
+from datetime import timedelta
 from pathlib import Path
 
 import dj_database_url
@@ -55,7 +57,11 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
+    'rest_framework',
+    # Guarda los refresh tokens ya rotados para que no se puedan volver a usar.
+    'rest_framework_simplejwt.token_blacklist',
     'escuela',
+    'api',
 ]
 
 MIDDLEWARE = [
@@ -106,6 +112,20 @@ DATABASES = {
     )
 }
 
+# `manage.py test` usa SQLite en memoria: es rápido y nunca toca Neon.
+# Con TEST_POSTGRES=1 corre contra DATABASE_URL (Django crea ahí test_<base>).
+if sys.argv[1:2] == ['test']:
+    if os.environ.get('TEST_POSTGRES') == '1':
+        if 'DATABASE_URL' not in os.environ:
+            raise ImproperlyConfigured('TEST_POSTGRES=1 necesita DATABASE_URL.')
+    else:
+        DATABASES = {
+            'default': {
+                'ENGINE': 'django.db.backends.sqlite3',
+                'NAME': ':memory:',
+            }
+        }
+
 
 # Password validation
 # https://docs.djangoproject.com/en/5.2/ref/settings/#auth-password-validators
@@ -143,6 +163,44 @@ USE_TZ = True
 LOGIN_URL = 'login'
 LOGIN_REDIRECT_URL = 'raiz'
 LOGOUT_REDIRECT_URL = 'login'
+
+
+# API para la app móvil (/api/v1/)
+# Solo afecta a las vistas de DRF: la web sigue con sus sesiones de Django.
+
+REST_FRAMEWORK = {
+    'DEFAULT_AUTHENTICATION_CLASSES': [
+        'rest_framework_simplejwt.authentication.JWTAuthentication',
+    ],
+    # Cerrada por omisión: cada vista pública lo declara con AllowAny.
+    'DEFAULT_PERMISSION_CLASSES': [
+        'rest_framework.permissions.IsAuthenticated',
+    ],
+    'DEFAULT_RENDERER_CLASSES': [
+        'rest_framework.renderers.JSONRenderer',
+    ],
+    # Solo limita las vistas que declaran throttle_scope (login y activación).
+    'DEFAULT_THROTTLE_CLASSES': [
+        'rest_framework.throttling.ScopedRateThrottle',
+    ],
+    'DEFAULT_THROTTLE_RATES': {
+        'login': '10/minute',
+        'activacion': '5/minute',
+    },
+    # Todos los errores salen como {"detail": "..."}: la app depende de eso.
+    'EXCEPTION_HANDLER': 'api.errores.manejar_error',
+}
+
+SIMPLE_JWT = {
+    # El access viaja en cada petición: si se filtra, sirve poco tiempo.
+    'ACCESS_TOKEN_LIFETIME': timedelta(minutes=15),
+    # Con rotación, cada renovación entrega un refresh nuevo y reinicia el plazo:
+    # el entrenador que usa la app seguido no vuelve a ver el login.
+    'REFRESH_TOKEN_LIFETIME': timedelta(days=30),
+    'ROTATE_REFRESH_TOKENS': True,
+    'BLACKLIST_AFTER_ROTATION': True,
+    'UPDATE_LAST_LOGIN': True,
+}
 
 
 # Static files (CSS, JavaScript, Images)

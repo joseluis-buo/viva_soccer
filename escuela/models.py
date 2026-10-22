@@ -24,6 +24,15 @@ class Horario(models.TextChoices):
     MAR_JUE = "MAR_JUE", "Martes y Jueves"
 
 
+# Los seis grupos (categoría + horario). La clave "MINI-LUN_MIE" es la misma en
+# los filtros de la web y en el parámetro ?grupo= de la API.
+GRUPOS = [
+    (f"{c.value}-{h.value}", f"{c.label} · {h.label}")
+    for c in Categoria
+    for h in Horario
+]
+
+
 validar_telefono = RegexValidator(
     regex=r"^\d{2} \d{4} \d{4}$",
     message="Ingresa 10 dígitos con el formato 55 1234 5678.",
@@ -114,7 +123,14 @@ class Evaluacion(models.Model):
         related_name="evaluaciones_capturadas",
         verbose_name="capturada por",
     )
+    # `fecha` es el día en que se evaluó en la cancha; `creada` es cuándo llegó
+    # al servidor. Con la captura sin conexión pueden ser días distintos.
     creada = models.DateTimeField("registrada", auto_now_add=True)
+    # Lo genera el teléfono. Si la app reenvía la misma evaluación al
+    # sincronizar, se reconoce por este valor y no se duplica. La web lo deja vacío.
+    client_uuid = models.UUIDField(
+        "identificador del teléfono", unique=True, null=True, blank=True, editable=False
+    )
 
     class Meta:
         verbose_name = "evaluación"
@@ -136,6 +152,42 @@ class Evaluacion(models.Model):
         if any(v is None for v in valores):
             return None
         return round(sum(valores) / 3, 1)
+
+
+class AsignacionEntrenador(models.Model):
+    """Grupo (categoría + horario) que le toca a un entrenador.
+
+    El administrador no necesita asignaciones: ve todos los grupos.
+    """
+
+    entrenador = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.CASCADE,
+        related_name="asignaciones",
+        limit_choices_to={"groups__name": "entrenador"},
+        verbose_name="entrenador",
+    )
+    categoria = models.CharField("categoría", max_length=5, choices=Categoria.choices)
+    horario = models.CharField("horario", max_length=7, choices=Horario.choices)
+
+    class Meta:
+        verbose_name = "asignación de entrenador"
+        verbose_name_plural = "asignaciones de entrenadores"
+        ordering = ["entrenador__username", "categoria", "horario"]
+        constraints = [
+            models.UniqueConstraint(
+                fields=["entrenador", "categoria", "horario"],
+                name="asignacion_unica_por_entrenador_y_grupo",
+            )
+        ]
+
+    def __str__(self):
+        return f"{self.entrenador} · {self.get_categoria_display()} · {self.get_horario_display()}"
+
+    @property
+    def grupo(self):
+        """Clave del grupo, igual que en GRUPOS: "MINI-LUN_MIE"."""
+        return f"{self.categoria}-{self.horario}"
 
 
 # ---------------------------------------------------------------------------

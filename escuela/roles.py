@@ -4,7 +4,10 @@ from functools import wraps
 
 from django.contrib.auth.views import redirect_to_login
 from django.core.exceptions import PermissionDenied
+from django.db.models import Q
 from django.shortcuts import redirect
+
+from .models import GRUPOS, Alumno
 
 
 def es_administrador(user):
@@ -35,6 +38,29 @@ def es_tutor(user):
     no es un permiso más, es ser el papá de alumnos concretos (ver Tutor.usuario).
     """
     return user.is_authenticated and user.groups.filter(name="tutor").exists()
+
+
+def grupos_de(user):
+    """Claves de GRUPOS que le tocan: todas al administrador, las asignadas al entrenador."""
+    if es_administrador(user):
+        return [clave for clave, _ in GRUPOS]
+    if not es_entrenador(user):
+        return []
+    asignados = {a.grupo for a in user.asignaciones.all()}
+    return [clave for clave, _ in GRUPOS if clave in asignados]
+
+
+def alumnos_del_entrenador(user):
+    """Alumnos activos que hoy están en alguno de sus grupos.
+
+    Toda la API del entrenador parte de aquí: lo que no sale en esta consulta,
+    para él no existe.
+    """
+    filtro = Q(pk__in=[])  # sin grupos, ningún alumno
+    for clave in grupos_de(user):
+        categoria, horario = clave.split("-")
+        filtro |= Q(categoria=categoria, horario=horario)
+    return Alumno.objects.filter(filtro, activo=True)
 
 
 def _exigir(prueba):

@@ -1,6 +1,6 @@
 from django.contrib import admin
 
-from .models import Alumno, CodigoActivacion, Evaluacion, Tutor
+from .models import AsignacionEntrenador, Alumno, CodigoActivacion, Evaluacion, Tutor
 
 admin.site.site_header = "VIVA SOCCER — Administración"
 admin.site.site_title = "VIVA SOCCER"
@@ -103,3 +103,12 @@ class EvaluacionAdmin(admin.ModelAdmin):
     @admin.display(description="promedio")
     def promedio(self, obj):
         return obj.promedio if obj.promedio is not None else "—"
+
+
+@admin.register(AsignacionEntrenador)
+class AsignacionEntrenadorAdmin(admin.ModelAdmin):
+    """Qué grupos ve cada entrenador en la app. La secretaria también los asigna."""
+
+    list_display = ["entrenador", "categoria", "horario"]
+    list_select_related = ["entrenador"]
+    list_filter = ["categoria", "horario", "entrenador"]

@@ -10,7 +10,14 @@ from django.contrib.auth.models import Group
 from django.core.management.base import BaseCommand
 from django.db import transaction
 
-from escuela.models import Alumno, Categoria, Evaluacion, Horario, Tutor
+from escuela.models import (
+    Alumno,
+    AsignacionEntrenador,
+    Categoria,
+    Evaluacion,
+    Horario,
+    Tutor,
+)
 
 User = get_user_model()
 
@@ -24,6 +31,15 @@ ALUMNOS = [
     ("Camila Herrera Sosa", date(2020, 6, 30), Categoria.MINI, Horario.MAR_JUE, "Lucía Sosa", "55 7761 3325"),
     ("Mateo Fuentes Aguilar", date(2016, 10, 11), Categoria.MENOR, Horario.MAR_JUE, "Iván Fuentes", "55 5540 8802"),
     ("Regina Palacios Cruz", date(2013, 2, 23), Categoria.MAYOR, Horario.LUN_MIE, "Sofía Cruz", "55 2218 6693"),
+]
+
+# Grupos del entrenador demo. MAYOR se queda fuera a propósito: así se ve en la
+# app que un entrenador solo recibe a los alumnos de sus grupos.
+GRUPOS_ENTRENADOR_DEMO = [
+    (Categoria.MINI, Horario.LUN_MIE),
+    (Categoria.MINI, Horario.MAR_JUE),
+    (Categoria.MENOR, Horario.LUN_MIE),
+    (Categoria.MENOR, Horario.MAR_JUE),
 ]
 
 # Fechas de sesión de la temporada 2026 (abril → septiembre).
@@ -61,6 +77,10 @@ class Command(BaseCommand):
         self._usuario("admin", "admin", "administrador", is_staff=True, is_superuser=True)
         self._usuario("secretaria", "secretaria", "secretaria", is_staff=True)
         entrenador = self._usuario("entrenador", "entrenador", "entrenador", is_staff=True)
+        for categoria, horario in GRUPOS_ENTRENADOR_DEMO:
+            AsignacionEntrenador.objects.get_or_create(
+                entrenador=entrenador, categoria=categoria, horario=horario
+            )
 
         rnd = random.Random(2026)  # determinista: re-ejecutar da los mismos números
         for nombre, nac, categoria, horario, nombre_tutor, telefono in ALUMNOS:
@@ -96,7 +116,8 @@ class Command(BaseCommand):
             self.style.SUCCESS(
                 f"Listo: {Alumno.objects.count()} alumnos, "
                 f"{Evaluacion.objects.count()} evaluaciones. "
-                "Usuarios: admin/admin, secretaria/secretaria y entrenador/entrenador."
+                "Usuarios: admin/admin, secretaria/secretaria y entrenador/entrenador "
+                "(grupos MINI y MENOR)."
             )
         )
 

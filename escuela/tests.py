@@ -7,12 +7,15 @@ Cubren lo que una entrega de avance necesita demostrar:
 - separación de accesos entre administrador, secretaria y entrenador,
 - guardado de la pantalla de captura,
 - funciones de secretaria: tutores, baja, corrección de evaluaciones y boletas,
-- app móvil: cuenta del tutor, sus hijos y códigos de activación de un solo uso.
+- app móvil: cuenta del tutor, sus hijos y códigos de activación de un solo uso,
+- grupos asignados a cada entrenador.
 """
 
 from datetime import date, timedelta
+from io import StringIO
 
 from django.contrib.auth.models import Group, User
+from django.core.management import call_command
 from django.core.exceptions import ValidationError
 from django.db import IntegrityError, transaction
 from django.test import TestCase
@@ -20,7 +23,9 @@ from django.urls import reverse
 from django.utils import timezone
 
 from .models import (
+    GRUPOS,
     Alumno,
+    AsignacionEntrenador,
     Categoria,
     CodigoActivacion,
     CodigoYaUsado,
@@ -28,7 +33,14 @@ from .models import (
     Horario,
     Tutor,
 )
-from .roles import es_administrador, es_entrenador, es_secretaria, es_tutor
+from .roles import (
+    alumnos_del_entrenador,
+    es_administrador,
+    es_entrenador,
+    es_secretaria,
+    es_tutor,
+    grupos_de,
+)
 
 
 def crear_tutor(**extra):
@@ -463,3 +475,68 @@ class AdminAppMovilTests(TestCase):
         self.assertEqual(respuesta.status_code, 200)
         respuesta = self.client.get(reverse("admin:escuela_codigoactivacion_add"))
         self.assertEqual(respuesta.status_code, 200)
+
+
+class AsignacionEntrenadorTests(TestCase):
+    def setUp(self):
+        self.profe = usuario_con_grupo("profe", "entrenador")
+        AsignacionEntrenador.objects.create(
+            entrenador=self.profe, categoria=Categoria.MENOR, horario=Horario.MAR_JUE
+        )
+
+    def test_entrenador_solo_tiene_sus_grupos(self):
+        self.assertEqual(grupos_de(self.profe), ["MENOR-MAR_JUE"])
+
+    def test_administrador_tiene_los_seis_sin_asignaciones(self):
+        jefa = usuario_con_grupo("jefa", "administrador")
+        self.assertEqual(grupos_de(jefa), [clave for clave, _ in GRUPOS])
+
+    def test_otros_roles_no_tienen_grupos_aunque_tengan_asignacion(self):
+        tutor = usuario_con_grupo("papa", "tutor")
+        AsignacionEntrenador.objects.create(
+            entrenador=tutor, categoria=Categoria.MINI, horario=Horario.LUN_MIE
+        )
+        self.assertEqual(grupos_de(tutor), [])
+        self.assertFalse(alumnos_del_entrenador(tutor).exists())
+
+    def test_alumnos_del_entrenador_son_los_activos_de_sus_grupos(self):
+        tutor = crear_tutor()
+        diego = crear_alumno(tutor=tutor)
+        crear_alumno(nombre="Baja", activo=False, tutor=tutor)
+        crear_alumno(nombre="Otro grupo", categoria=Categoria.MAYOR, tutor=tutor)
+        crear_alumno(nombre="Otro horario", horario=Horario.LUN_MIE, tutor=tutor)
+        self.assertEqual(list(alumnos_del_entrenador(self.profe)), [diego])
+
+    def test_no_se_repite_el_mismo_grupo_para_un_entrenador(self):
+        with self.assertRaises(IntegrityError), transaction.atomic():
+            AsignacionEntrenador.objects.create(
+                entrenador=self.profe, categoria=Categoria.MENOR, horario=Horario.MAR_JUE
+            )
+
+    def test_secretaria_asigna_grupos_desde_el_admin(self):
+        secretaria = usuario_con_grupo("sec", "secretaria")
+        secretaria.is_staff = True
+        secretaria.save()
+        self.client.force_login(secretaria)
+        respuesta = self.client.post(
+            reverse("admin:escuela_asignacionentrenador_add"),
+            {"entrenador": self.profe.pk, "categoria": "MINI", "horario": "LUN_MIE"},
+        )
+        self.assertEqual(respuesta.status_code, 302)
+        self.assertEqual(grupos_de(self.profe), ["MINI-LUN_MIE", "MENOR-MAR_JUE"])
+
+    def test_en_el_admin_solo_se_elige_entre_entrenadores(self):
+        usuario_con_grupo("papa", "tutor")
+        self.client.force_login(User.objects.create_superuser("root", password="x"))
+        respuesta = self.client.get(reverse("admin:escuela_asignacionentrenador_add"))
+        opciones = respuesta.context["adminform"].form.fields["entrenador"].queryset
+        self.assertEqual(list(opciones), [self.profe])
+
+
+class SeedDemoTests(TestCase):
+    def test_el_entrenador_demo_queda_con_grupos(self):
+        call_command("seed_demo", stdout=StringIO())
+        call_command("seed_demo", stdout=StringIO())  # idempotente
+        entrenador = User.objects.get(username="entrenador")
+        self.assertEqual(entrenador.asignaciones.count(), 4)
+        self.assertTrue(alumnos_del_entrenador(entrenador).exists())

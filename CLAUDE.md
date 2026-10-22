@@ -103,6 +103,21 @@ API) y da a la secretaria los permisos de `CodigoActivacion`.
 Si algo falla (por ejemplo, el teléfono ya está ocupado como usuario), se
 revierte todo y el código sigue vigente.
 
+### Grupos del entrenador (migraciones 0007 y 0008)
+- Un grupo es categoría + horario; no hay modelo `Grupo`. Las seis claves
+  (`"MINI-LUN_MIE"`…) están en `GRUPOS`, en `escuela/models.py`, y las usan la
+  web y la API.
+- `AsignacionEntrenador` liga un entrenador con un grupo. La asignan el
+  administrador o la secretaria desde el admin. El administrador no necesita
+  asignaciones: ve los seis.
+- `grupos_de(user)` y `alumnos_del_entrenador(user)` en `escuela/roles.py`
+  son la única regla de qué ve un entrenador en la API: alumnos activos que
+  **hoy** están en uno de sus grupos. Lo de fuera responde 404.
+- La captura web todavía **no** se restringe por asignación.
+- `Evaluacion.client_uuid` lo genera el teléfono. `fecha` es el día en la
+  cancha (hasta 7 días atrás) y `creada` es cuándo llegó al servidor: son
+  datos distintos.
+
 ## API
 Prefijo `/api/v1/`. JSON. Autenticación JWT para el móvil; la web sigue con
 sesiones de Django.
