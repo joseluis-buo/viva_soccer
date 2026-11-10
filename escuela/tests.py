@@ -779,3 +779,48 @@ class ConfiguracionProduccionTests(TestCase):
         entorno = {**self.ENTORNO_RAILWAY, "DJANGO_ALLOWED_HOSTS": " a.up.railway.app , b.mx ,"}
         proceso = self.importar_settings(**entorno)
         self.assertIn("['a.up.railway.app', 'b.mx']", proceso.stdout)
+
+
+class RendimientoConsultasTests(TestCase):
+    """Las pantallas que recorren muchos alumnos no deben hacer una consulta por alumno."""
+
+    def _contar(self, url):
+        from django.db import connection
+        from django.test.utils import CaptureQueriesContext
+
+        with CaptureQueriesContext(connection) as consultas:
+            respuesta = self.client.get(url)
+        self.assertEqual(respuesta.status_code, 200)
+        return len(consultas)
+
+    def _alumno_con_evaluaciones(self, i):
+        alumno = crear_alumno(nombre=f"Alumno {i}", tutor=self.tutor)
+        for dia in range(3):
+            Evaluacion.objects.create(
+                alumno=alumno, fecha=date(2026, 1, 5) + timedelta(days=dia),
+                pase=7, recepcion=8, tiro=6,
+            )
+
+    def setUp(self):
+        self.tutor = crear_tutor()
+        self.client.force_login(usuario_con_grupo("sec", "secretaria"))
+
+    def test_boletas_de_grupo_no_crecen_con_el_numero_de_alumnos(self):
+        url = reverse("boletas_grupo") + f"?grupo={Categoria.MENOR}-{Horario.MAR_JUE}"
+        self._alumno_con_evaluaciones(0)
+        con_uno = self._contar(url)
+        for i in range(1, 6):
+            self._alumno_con_evaluaciones(i)
+        self.assertEqual(self._contar(url), con_uno)
+
+    def test_panel_hace_una_consulta_para_la_grafica_por_categoria(self):
+        self.client.force_login(usuario_con_grupo("adm", "administrador"))
+        self._alumno_con_evaluaciones(0)
+        respuesta = self.client.get(reverse("dashboard"))
+        self.assertEqual(respuesta.status_code, 200)
+        grafica = respuesta.context["grafica"]
+        self.assertEqual(len(grafica["categorias"]), len(Categoria))
+        # Solo MENOR tiene evaluaciones; las demás categorías quedan en cero.
+        indice = grafica["categorias"].index(Categoria.MENOR.label)
+        self.assertEqual(grafica["pase"][indice], 7.0)
+        self.assertEqual(sum(grafica["pase"]), 7.0)

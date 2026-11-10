@@ -27,6 +27,11 @@ def _redondear(valor):
     return round(valor, 1) if valor is not None else 0.0
 
 
+# Promedio de cada habilidad. Antes este mismo aggregate estaba copiado en
+# tres lugares; ahora se escribe una sola vez.
+PROMEDIOS_HABILIDAD = {"p": Avg("pase"), "r": Avg("recepcion"), "t": Avg("tiro")}
+
+
 def _polilinea(valores, ancho=380, alto=110, vmin=0, vmax=10):
     """Puntos 'x,y x,y …' para un <polyline> SVG escalado al viewBox."""
     if not valores:
@@ -75,9 +80,7 @@ def dashboard(request):
         fecha__year=hoy.year, fecha__month=hoy.month
     ).count()
 
-    agg = Evaluacion.objects.aggregate(
-        p=Avg("pase"), r=Avg("recepcion"), t=Avg("tiro")
-    )
+    agg = Evaluacion.objects.aggregate(**PROMEDIOS_HABILIDAD)
     promedio_pase = _redondear(agg["p"])
     promedio_recepcion = _redondear(agg["r"])
     promedio_tiro = _redondear(agg["t"])
@@ -85,11 +88,17 @@ def dashboard(request):
         (promedio_pase + promedio_recepcion + promedio_tiro) / 3
     )
 
+    # Una sola consulta con GROUP BY categoría, en lugar de una por categoría.
+    por_cat = {
+        fila["alumno__categoria"]: fila
+        for fila in Evaluacion.objects.order_by()
+        .values("alumno__categoria")
+        .annotate(**PROMEDIOS_HABILIDAD)
+    }
+    vacio = {"p": None, "r": None, "t": None}
     grafica = {"categorias": [], "pase": [], "recepcion": [], "tiro": []}
     for c in Categoria:
-        a = Evaluacion.objects.filter(alumno__categoria=c.value).aggregate(
-            p=Avg("pase"), r=Avg("recepcion"), t=Avg("tiro")
-        )
+        a = por_cat.get(c.value, vacio)
         grafica["categorias"].append(c.label)
         grafica["pase"].append(_redondear(a["p"]))
         grafica["recepcion"].append(_redondear(a["r"]))
@@ -240,7 +249,7 @@ def alumno_reactivar(request, pk):
 
 def _promedio_categoria(categoria):
     cat = Evaluacion.objects.filter(alumno__categoria=categoria).aggregate(
-        p=Avg("pase"), r=Avg("recepcion"), t=Avg("tiro")
+        **PROMEDIOS_HABILIDAD
     )
     if cat["p"] is None:
         return None
@@ -249,7 +258,9 @@ def _promedio_categoria(categoria):
 
 def _comparativo(alumno, promedio_categoria):
     """Histórico del alumno y su promedio frente al de su categoría (ficha y boleta)."""
-    evs = list(alumno.evaluaciones.order_by("fecha"))
+    # .all() aprovecha el prefetch de boletas_grupo; sin prefetch hace una sola
+    # consulta, igual que antes. Se ordena aquí para no perder el prefetch.
+    evs = sorted(alumno.evaluaciones.all(), key=lambda e: e.fecha)
     ultima = evs[-1] if evs else None
     promedio_actual = ultima.promedio if ultima else None
 
@@ -401,9 +412,11 @@ def boletas_grupo(request):
         return redirect("padron")
     categoria, horario = grupo.split("-")
     promedio_categoria = _promedio_categoria(categoria)
-    alumnos = Alumno.objects.filter(
-        activo=True, categoria=categoria, horario=horario
-    ).select_related("tutor")
+    alumnos = (
+        Alumno.objects.filter(activo=True, categoria=categoria, horario=horario)
+        .select_related("tutor")
+        .prefetch_related("evaluaciones")  # 1 consulta para todo el grupo, no 1 por alumno
+    )
     boletas = [_comparativo(a, promedio_categoria) for a in alumnos]
     return render(
         request,
