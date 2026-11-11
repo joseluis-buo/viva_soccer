@@ -11,6 +11,7 @@ https://docs.djangoproject.com/en/5.2/ref/settings/
 """
 
 import os
+import socket
 import sys
 from datetime import timedelta
 from pathlib import Path
@@ -63,6 +64,32 @@ ALLOWED_HOSTS = lista_del_entorno('DJANGO_ALLOWED_HOSTS', '127.0.0.1,localhost')
 # Con esquema: https://vivasoccer.up.railway.app. Sin él, el login web da 403.
 CSRF_TRUSTED_ORIGINS = lista_del_entorno('DJANGO_CSRF_TRUSTED')
 
+
+def ip_local():
+    """IP de esta máquina en la red Wi-Fi (la que usa el teléfono para llegar).
+
+    Conectar un socket UDP no envía nada: solo hace que el sistema elija la
+    interfaz de salida, y de ahí se lee la IP.
+    """
+    try:
+        with socket.socket(socket.AF_INET, socket.SOCK_DGRAM) as s:
+            s.connect(('8.8.8.8', 80))
+            return s.getsockname()[0]
+    except OSError:
+        return None
+
+
+# CORS: solo lo necesita la app móvil cuando corre en el navegador
+# (npx expo start --web, puerto 8081). La app nativa no pasa por CORS.
+# En producción, con esquema y separados por coma: https://app.ejemplo.com
+if DEBUG:
+    CORS_ALLOWED_ORIGINS = ['http://localhost:8081', 'http://127.0.0.1:8081']
+    ip = ip_local()
+    if ip:
+        CORS_ALLOWED_ORIGINS.append(f'http://{ip}:8081')
+else:
+    CORS_ALLOWED_ORIGINS = lista_del_entorno('DJANGO_CORS_ORIGINS')
+
 if not DEBUG:
     # Railway atiende el HTTPS y le pasa la petición a gunicorn por HTTP; este
     # encabezado le dice a Django que el original sí venía cifrado.
@@ -79,6 +106,7 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
+    'corsheaders',
     'rest_framework',
     # Guarda los refresh tokens ya rotados para que no se puedan volver a usar.
     'rest_framework_simplejwt.token_blacklist',
@@ -87,6 +115,8 @@ INSTALLED_APPS = [
 ]
 
 MIDDLEWARE = [
+    # Lo más arriba posible: debe responder el preflight OPTIONS antes que nadie.
+    'corsheaders.middleware.CorsMiddleware',
     'django.middleware.security.SecurityMiddleware',
     'whitenoise.middleware.WhiteNoiseMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
@@ -257,3 +287,17 @@ if sys.argv[1:2] == ['test']:
 # https://docs.djangoproject.com/en/5.2/ref/settings/#default-auto-field
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
+
+# --- CORS para desarrollo (front en localhost / red local) ---
+if "corsheaders" not in INSTALLED_APPS:
+    INSTALLED_APPS = [*INSTALLED_APPS, "corsheaders"]
+
+MIDDLEWARE = ["corsheaders.middleware.CorsMiddleware"] + [
+    m for m in MIDDLEWARE if m != "corsheaders.middleware.CorsMiddleware"
+]
+
+CORS_ALLOWED_ORIGIN_REGEXES = [
+    r"^http://(localhost|127\.0\.0\.1|192\.168\.\d+\.\d+)(:\d+)?$",
+]
+
+ALLOWED_HOSTS = [*ALLOWED_HOSTS, "localhost", "127.0.0.1", "192.168.0.201"]

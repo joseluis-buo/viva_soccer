@@ -82,6 +82,13 @@ class LoginTests(ApiTestCase):
         self.assertIn("detail", respuesta.data)
         self.assertNotIn("access", respuesta.data)
 
+    def test_contrasena_mala_responde_en_espanol(self):
+        usuario_con_grupo("profe", "entrenador")
+        respuesta = self.login("profe", "otra-clave")
+        self.assertEqual(
+            respuesta.data, {"detail": "Usuario o contraseña incorrectos."}
+        )
+
     def test_usuario_sin_rol_no_recibe_tokens(self):
         User.objects.create_user("nadie", password=CLAVE)
         respuesta = self.login("nadie")

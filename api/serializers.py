@@ -45,6 +45,11 @@ def datos_de_sesion(usuario):
 class LoginSerializer(TokenObtainPairSerializer):
     """Login de simplejwt (usuario y contraseña) con rol y nombre en la respuesta."""
 
+    # simplejwt trae este mensaje en inglés; la app lo muestra tal cual al usuario.
+    default_error_messages = {
+        "no_active_account": "Usuario o contraseña incorrectos.",
+    }
+
     def validate(self, attrs):
         super().validate(attrs)  # valida las credenciales y deja self.user
         return datos_de_sesion(self.user)
