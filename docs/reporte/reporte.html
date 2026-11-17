@@ -322,6 +322,7 @@
   <li><b>pruebas</b>: <code>manage.py check</code>, <code>makemigrations --check</code> (falla si un cambio de modelo no tiene su migración), las pruebas contra un PostgreSQL 18 de servicio (la misma versión que Neon) y la compilación de Tailwind.</li>
   <li><b>e2e</b>: la prueba de punta a punta con Playwright y Chromium, con su propia base SQLite (sección 9.2).</li>
 </ul>
+<p>Un segundo workflow, <code>produccion.yml</code>, corre cuando Railway reporta a GitHub un despliegue de producción terminado. El script <code>bin/verificar_produccion.py</code> revisa, solo con peticiones GET, que <code>/acceso/</code> responda 200 con su región <code>&lt;main&gt;</code> y que el CSS y el favicon con hash existan. Si algo falla, el job queda en rojo. Se agregó después de la caída del hallazgo 7, que el CI no podía ver porque ocurre en el despliegue, no en el código.</p>
 <p>El CI está en verde desde el último push. Antes estuvo en rojo en dos pushes, por una prueba que solo pasaba en las máquinas del equipo (hallazgo 5 de la sección 8.6).</p>
 
 <h3 data-indice>8.3 Neon: entornos separados</h3>
@@ -339,9 +340,9 @@
 
 <h3 data-indice>8.4 Despliegue en Railway</h3>
 <p>La aplicación se desplegó el 16 de noviembre de 2026 en <code>vivasoccer-production.up.railway.app</code>, desde la web de Railway y conectada al repositorio. En cada push a <code>main</code>, Railway construye (instala dependencias, compila Tailwind y corre <code>collectstatic</code>), migra la base antes de publicar (si una migración falla, la versión anterior sigue en línea) y arranca gunicorn.</p>
-<p>Railway retiró su configuración como código: <code>railway.json</code> deja de leerse el 1 de diciembre de 2026 (Railway, s. f.-a). Su reemplazo, <i>Infrastructure as Code</i>, requiere Node o un SDK de Python en beta (Railway, s. f.-b). Para no meter dependencias diez días antes de la entrega, la configuración se pasó al panel del servicio y se documentó campo por campo en el README; <code>railway.json</code> se borró después de confirmar que el despliegue seguía funcionando.</p>
+<p>Railway retiró su configuración como código: <code>railway.json</code> deja de leerse el 1 de diciembre de 2026 (Railway, s. f.-a). Su reemplazo, <i>Infrastructure as Code</i>, requiere Node o un SDK de Python en beta (Railway, s. f.-b). Para no meter dependencias diez días antes de la entrega, se decidió pasar la configuración al panel del servicio, documentada campo por campo en el README. El primer intento falló: al borrar <code>railway.json</code>, los despliegues dejaron de correr el build (hallazgo 7), así que el archivo se restauró y se queda en el repositorio hasta que el panel aplique el build, antes del 1 de diciembre.</p>
 <table>
-  <thead><tr><th style="width:26%">Campo del panel</th><th>Valor</th></tr></thead>
+  <thead><tr><th style="width:26%">Campo (panel y <code>railway.json</code>)</th><th>Valor</th></tr></thead>
   <tbody>
     <tr><td>Builder</td><td>Railpack</td></tr>
     <tr><td>Build</td><td><code>python bin/compilar_css.py &amp;&amp; python manage.py collectstatic --noinput</code></td></tr>
@@ -364,7 +365,7 @@
 <p>Una prueba provoca un error real a través de la aplicación WSGI, la misma que usa gunicorn, con el nombre de un alumno en la URL, el cuerpo y un encabezado, un teléfono en una variable local, una contraseña, una cookie y una IP, y verifica que ninguno llegue al evento. Con la configuración por defecto de Sentry, esa misma prueba encontraba el nombre, el teléfono, la contraseña y la IP. <b>La verificación manual en producción, enviando un error desde el contenedor con <code>railway ssh</code>, está pendiente.</b></p>
 
 <h3 data-indice>8.6 Hallazgos y correcciones</h3>
-<p>Las pruebas y las revisiones del 16 de noviembre encontraron siete problemas reales. Se reportan con su causa y su corrección porque son parte del resultado del proyecto.</p>
+<p>Las pruebas y las revisiones del 16 de noviembre encontraron siete problemas reales, incluida una caída de la web. Se reportan con su causa y su corrección porque son parte del resultado del proyecto.</p>
 
 <div class="hallazgo">
   <h4>1. Configuración de red local activa en producción</h4>
@@ -397,9 +398,10 @@
   <p><b>Corrección.</b> Se desplegó el 16 de noviembre y, desde entonces, el estado de producción solo se reporta después de verificarlo contra el dominio.</p>
 </div>
 <div class="hallazgo">
-  <h4>7. Configuración de Railway en retiro</h4>
-  <p><b>Qué pasó.</b> Railway anunció que <code>railway.json</code> deja de leerse el 1 de diciembre de 2026.</p>
-  <p><b>Corrección.</b> La configuración se pasó al panel y se documentó en el README (sección 8.4), y el archivo se borró después de confirmar el despliegue.</p>
+  <h4>7. Un despliegue “exitoso” sin build</h4>
+  <p><b>Qué pasó.</b> Railway anunció que <code>railway.json</code> deja de leerse el 1 de diciembre de 2026. Se capturó su configuración en el panel del servicio y se borró el archivo. Los dos despliegues siguientes terminaron como <i>success</i>, pero sin compilar Tailwind ni correr <code>collectstatic</code>: sin el manifiesto de estáticos, todas las páginas HTML respondieron 500 de las 22:07 a las 22:41 (hora de Tijuana) del 16 de noviembre. La API siguió funcionando.</p>
+  <p><b>Cómo se detectó.</b> Al revisar producción después del despliegue, solo con peticiones GET: <code>/acceso/</code> daba 500 y los archivos de <code>/static/</code>, 404. Ni el CI ni el estado del despliegue lo mostraban.</p>
+  <p><b>Corrección.</b> Se restauró <code>railway.json</code> con su contenido original y la web volvió en el siguiente despliegue. El archivo se queda hasta confirmar, en los logs, que el panel corre el build. Para que una caída así no pase inadvertida, se agregó al CI una verificación de producción después de cada despliegue.</p>
 </div>
 
 <!-- ================================================================ 9 -->
@@ -452,6 +454,7 @@
 <ul>
   <li>Pruebas con usuarios y cuestionario SUS (sección 9.4), para cerrar OE1 a OE4 y OE7, y medir el tiempo de confirmación de guardado de OE6.</li>
   <li>Mapa de empatía, wireframes de baja fidelidad y las dos evaluaciones heurísticas formales; llevar las pantallas de tutores y boleta a <code>design.html</code>.</li>
+  <li>Resolver por qué el panel de Railway no aplica el build y retirar <code>railway.json</code> antes del 1 de diciembre de 2026.</li>
   <li>Verificar Sentry en producción con <code>railway ssh</code> y activar en Railway la espera al CI antes de desplegar.</li>
   <li>Activar HSTS y la redirección a HTTPS, los dos avisos pendientes de <code>manage.py check --deploy</code>.</li>
   <li>Captura sin conexión en la web (RF-06), salto al siguiente alumno pendiente (heurística 7), gestión de cuentas desde la interfaz (RF-11) y filtro por temporada en los reportes (RF-10).</li>

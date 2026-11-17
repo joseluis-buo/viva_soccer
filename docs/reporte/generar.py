@@ -235,6 +235,7 @@ GRUPOS_DE_PRUEBAS = [
     ("Rendimiento (sin consultas N+1)", {"RendimientoConsultasTests"}),
     ("Sentry sin datos personales", {"SentryActivacionTests", "SentrySinDatosPersonalesTests"}),
     ("Las pruebas nunca tocan Neon", {"PruebasSinNeonTests"}),
+    ("Verificación de producción después del despliegue", {"VerificarProduccionTests"}),
 ]
 
 

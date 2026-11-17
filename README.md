@@ -132,16 +132,25 @@ tiene base propia, y la web y la app móvil de producción comparten la misma.
 |------------------------|----------|
 | `.python-version`      | Python 3.12 (sin él, Railway usaría 3.13) |
 | `bin/compilar_css.py`  | Descarga Tailwind v3.4.17 si falta y compila el CSS |
-
-No hay `railway.json`: la configuración del servicio vive en el panel (abajo).
+| `railway.json`         | Build, migraciones e inicio. **Se queda hasta resolver el panel** (abajo); Railway lo lee hasta el 2026-12-01 |
 
 ### Configuración del servicio en el panel de Railway
 
 Railway retiró *Config as Code*: `railway.json` deja de leerse el
-2026-12-01, y el de este repo se borró después de pasar su contenido al panel.
-Su reemplazo, *Infrastructure as Code*, pide Node o un SDK en beta, así que la
-configuración vive en el panel del servicio (**Settings**). Si alguien la
-cambia, que actualice esta tabla: es la única copia escrita.
+2026-12-01. Su reemplazo, *Infrastructure as Code*, pide Node o un SDK en beta,
+así que la configuración se va a mover al panel del servicio (**Settings**),
+con los valores de esta tabla.
+
+> [!WARNING]
+> **El panel todavía no aplica el build.** El 16 de noviembre se borró
+> `railway.json` con esta tabla ya capturada en el panel. Los dos despliegues
+> siguientes terminaron como *success*, pero sin compilar Tailwind ni correr
+> `collectstatic`: `/static/` daba 404 y todas las páginas HTML 500 (la API
+> siguió funcionando) de las 22:07 a las 22:41, hora de Tijuana. Se detectó al
+> revisar producción después del despliegue y se restauró `railway.json`.
+> Mientras exista, Railway lo usa por encima del panel. **No lo borren** hasta
+> confirmar en los logs de un despliegue que el panel corre el build; hay que
+> resolverlo antes del 2026-12-01.
 
 | Sección del panel | Campo | Valor |
 |-------------------|-------|-------|
