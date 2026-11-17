@@ -13,10 +13,10 @@ jobs:
   pruebas:
     runs-on: ubuntu-latest
 
-    # Una base PostgreSQL desechable, como la de Neon pero solo para el CI.
+    # Una base PostgreSQL desechable, de la misma versión que Neon (18), solo para el CI.
     services:
       postgres:
-        image: postgres:16
+        image: postgres:18
         env:
           POSTGRES_USER: vivasoccer
           POSTGRES_PASSWORD: vivasoccer
