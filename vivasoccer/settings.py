@@ -87,6 +87,14 @@ if DEBUG:
     ip = ip_local()
     if ip:
         CORS_ALLOWED_ORIGINS.append(f'http://{ip}:8081')
+    # Para probar la app desde el celular en la red de casa, en cualquier
+    # puerto. Solo en desarrollo: en producción la red local no existe.
+    CORS_ALLOWED_ORIGIN_REGEXES = [
+        r'^http://(localhost|127\.0\.0\.1|192\.168\.\d+\.\d+)(:\d+)?$',
+    ]
+    for host in ('localhost', '127.0.0.1', '192.168.0.201'):
+        if host not in ALLOWED_HOSTS:
+            ALLOWED_HOSTS.append(host)
 else:
     CORS_ALLOWED_ORIGINS = lista_del_entorno('DJANGO_CORS_ORIGINS')
 
@@ -287,17 +295,3 @@ if sys.argv[1:2] == ['test']:
 # https://docs.djangoproject.com/en/5.2/ref/settings/#default-auto-field
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
-
-# --- CORS para desarrollo (front en localhost / red local) ---
-if "corsheaders" not in INSTALLED_APPS:
-    INSTALLED_APPS = [*INSTALLED_APPS, "corsheaders"]
-
-MIDDLEWARE = ["corsheaders.middleware.CorsMiddleware"] + [
-    m for m in MIDDLEWARE if m != "corsheaders.middleware.CorsMiddleware"
-]
-
-CORS_ALLOWED_ORIGIN_REGEXES = [
-    r"^http://(localhost|127\.0\.0\.1|192\.168\.\d+\.\d+)(:\d+)?$",
-]
-
-ALLOWED_HOSTS = [*ALLOWED_HOSTS, "localhost", "127.0.0.1", "192.168.0.201"]

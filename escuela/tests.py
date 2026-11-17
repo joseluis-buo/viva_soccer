@@ -741,13 +741,13 @@ class ConfiguracionProduccionTests(TestCase):
     }
     VARIABLES_DEL_PROYECTO = ["DJANGO_DEBUG", *ENTORNO_RAILWAY]
 
-    def importar_settings(self, **variables):
+    def importar_settings(self, codigo=None, **variables):
         """Importa settings con solo `variables` (más las del .env) y devuelve el proceso."""
         entorno = {
             k: v for k, v in os.environ.items() if k not in self.VARIABLES_DEL_PROYECTO
         }
         entorno.update(variables)
-        codigo = (
+        codigo = codigo or (
             "import vivasoccer.settings as s; "
             "print(s.DEBUG, s.ALLOWED_HOSTS, s.CSRF_TRUSTED_ORIGINS, "
             "s.SESSION_COOKIE_SECURE)"
@@ -779,6 +779,23 @@ class ConfiguracionProduccionTests(TestCase):
         entorno = {**self.ENTORNO_RAILWAY, "DJANGO_ALLOWED_HOSTS": " a.up.railway.app , b.mx ,"}
         proceso = self.importar_settings(**entorno)
         self.assertIn("['a.up.railway.app', 'b.mx']", proceso.stdout)
+
+    # Imprime los hosts y el regex de CORS, o None si no está definido.
+    CODIGO_RED_LOCAL = (
+        "import vivasoccer.settings as s; "
+        "print(s.ALLOWED_HOSTS, getattr(s, 'CORS_ALLOWED_ORIGIN_REGEXES', None))"
+    )
+
+    def test_red_local_solo_con_debug_encendido(self):
+        proceso = self.importar_settings(self.CODIGO_RED_LOCAL, DJANGO_DEBUG="1")
+        self.assertEqual(proceso.returncode, 0, proceso.stderr)
+        self.assertIn("'192.168.0.201'", proceso.stdout)
+        self.assertIn("192\\\\.168", proceso.stdout)
+
+    def test_en_produccion_no_hay_hosts_ni_cors_de_red_local(self):
+        proceso = self.importar_settings(self.CODIGO_RED_LOCAL, **self.ENTORNO_RAILWAY)
+        self.assertEqual(proceso.returncode, 0, proceso.stderr)
+        self.assertEqual(proceso.stdout.strip(), "['vivasoccer.up.railway.app'] None")
 
 
 class RendimientoConsultasTests(TestCase):
