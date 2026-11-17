@@ -118,9 +118,15 @@ las que ya existen.
 
 ## Despliegue en Railway
 
-La web y la API corren en un servicio de Railway conectado al repositorio de
-GitHub. **La base es la rama principal de Neon**: Railway no tiene base
-propia, y la web y la app móvil de producción comparten la misma.
+> [!NOTE]
+> **Estado al 16 de noviembre de 2026: la app todavía no se ha desplegado.**
+> `railway.json` y esta sección dejan lista la configuración, pero no existe
+> ningún proyecto en Railway. Cuando se despliegue, actualizar esta nota con
+> la fecha y el dominio.
+
+El plan: la web y la API corren en un servicio de Railway conectado al
+repositorio de GitHub. **La base es la rama principal de Neon**: Railway no
+tiene base propia, y la web y la app móvil de producción comparten la misma.
 
 ### Qué hay en el repositorio
 
@@ -130,7 +136,7 @@ propia, y la web y la app móvil de producción comparten la misma.
 | `.python-version`      | Python 3.12 (sin él, Railway usaría 3.13) |
 | `bin/compilar_css.py`  | Descarga Tailwind v3.4.17 si falta y compila el CSS |
 
-En cada push a `main`, Railway hace esto:
+Una vez conectado el repositorio, en cada push a `main` Railway hace esto:
 
 1. **Build**: instala `requirements.txt`, compila el CSS de Tailwind y corre
    `collectstatic`. WhiteNoise sirve los estáticos desde gunicorn, comprimidos
@@ -168,11 +174,11 @@ En el servicio → **Variables**:
 
 | Variable               | Valor |
 |------------------------|-------|
-| `DATABASE_URL`         | La cadena de la rama principal de Neon. Solo vive aquí, no en ningún `.env` |
+| `DATABASE_URL`         | La cadena de la rama `production` de Neon. Solo vive aquí, no en ningún `.env` |
 | `DJANGO_SECRET_KEY`    | Una llave nueva y larga, distinta de la de desarrollo (ver abajo) |
-| `DJANGO_ALLOWED_HOSTS` | El dominio de Railway, sin `https://`: `vivasoccer.up.railway.app` |
-| `DJANGO_CSRF_TRUSTED`  | El mismo dominio, con `https://`: `https://vivasoccer.up.railway.app` |
-| `DJANGO_DEBUG`         | `0` (opcional: en Railway `DEBUG` se apaga siempre) |
+| `DJANGO_ALLOWED_HOSTS` | El dominio que generó Railway, sin `https://`: `<dominio>.up.railway.app` |
+| `DJANGO_CSRF_TRUSTED`  | El mismo dominio, con `https://`: `https://<dominio>.up.railway.app` |
+| `DJANGO_DEBUG`         | No hace falta: en Railway `DEBUG` se apaga siempre |
 | `SENTRY_DSN`           | El DSN del proyecto de Sentry (opcional; sin él no se reportan errores) |
 
 Para generar la llave:
@@ -188,22 +194,24 @@ por la variable `RAILWAY_ENVIRONMENT_NAME`, que Railway pone sola.
 ### Pasos en el panel de Railway
 
 1. **New Project → Deploy from GitHub repo** y elegir este repositorio. Si
-   Railway sugiere agregar PostgreSQL, **no aceptar**: la base es Neon.
+   Railway sugiere agregar PostgreSQL, **no aceptar**: la base es Neon. El
+   primer build **falla** porque todavía no hay variables: es lo esperado.
 2. En el servicio → **Settings → Networking → Generate Domain**. Anotar el
-   dominio (`algo.up.railway.app`).
-3. En **Variables**, capturar las cinco de la tabla con ese dominio. No usar
+   dominio (`<dominio>.up.railway.app`). Va antes que las variables porque
+   `DJANGO_ALLOWED_HOSTS` y `DJANGO_CSRF_TRUSTED` lo necesitan.
+3. En **Variables**, capturar las de la tabla con ese dominio. No usar
    variables de referencia a un Postgres de Railway (`${{Postgres...}}`).
-4. Hacer **Deploy** (o un push a `main`). En **Deployments** se ven los logs del
+4. Aplicar los cambios (**Deploy**). En **Deployments** se ven los logs del
    build, del pre-deploy (migraciones) y de gunicorn.
-5. Entrar a `https://<dominio>/` con un usuario existente en Neon.
+5. Entrar a `https://<dominio>/acceso/` con un usuario de la rama `production`.
 6. En la app móvil, cambiar la URL de la API a `https://<dominio>/api/v1/`.
 
 Para verificar que no hay base de Railway: en el lienzo del proyecto solo debe
 aparecer el servicio de la web, sin un cuadro de PostgreSQL.
 
-`seed_demo --reset` se niega en producción. Los usuarios demo de Neon (con
-contraseñas conocidas) quedan accesibles en el dominio público: sirven para la
-exposición, pero no se deben cargar alumnos reales en esa base mientras existan.
+`seed_demo` se niega a correr en producción. Las cuentas demo de la rama
+`production` (`admin`, `secretaria`, `entrenador`, `5512345678`) ya no tienen
+las contraseñas del seed; las contraseñas demo solo valen en `desarrollo`.
 
 ## Usuarios demo
 
