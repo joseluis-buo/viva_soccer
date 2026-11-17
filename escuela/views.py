@@ -160,11 +160,11 @@ def dashboard(request):
     )
 
 
-@solo_secretaria
-def padron(request):
-    q = request.GET.get("q", "").strip()
-    grupo = request.GET.get("grupo", "")
+def filtrar_padron(q, grupo):
+    """Alumnos que coinciden con la búsqueda y el grupo; la usan el padrón y su CSV.
 
+    Devuelve también el grupo ya validado ("" si no era uno de GRUPOS).
+    """
     alumnos = Alumno.objects.select_related("tutor")
     if q:
         coincide = Q(nombre__icontains=q) | Q(tutor__nombre__icontains=q)
@@ -178,6 +178,13 @@ def padron(request):
             alumnos = alumnos.filter(categoria=categoria, horario=horario)
         except ValueError:
             grupo = ""
+    return alumnos, grupo
+
+
+@solo_secretaria
+def padron(request):
+    q = request.GET.get("q", "").strip()
+    alumnos, grupo = filtrar_padron(q, request.GET.get("grupo", ""))
 
     paginator = Paginator(alumnos, 25)
     pagina = paginator.get_page(request.GET.get("page"))

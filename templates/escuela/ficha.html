@@ -8,6 +8,7 @@
   <p class="seccion-kicker">07 / Ficha de alumno</p>
   <div class="flex flex-wrap gap-2">
     <a href="{% url 'boleta' alumno.pk %}" target="_blank" class="btn-fantasma h-9 px-3 text-xs">Imprimir boleta</a>
+    <a href="{% url 'evaluaciones_alumno_csv' alumno.pk %}" class="btn-fantasma h-9 px-3 text-xs">Evaluaciones (CSV)</a>
     <button type="button" class="btn-fantasma h-9 px-3 text-xs"
             hx-get="{% url 'alumno_editar' alumno.pk %}" hx-target="#modal">Editar datos</button>
     {% if alumno.activo %}

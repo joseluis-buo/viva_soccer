@@ -13,6 +13,7 @@ Cubren lo que una entrega de avance necesita demostrar:
 - configuración de producción (Railway) leída del entorno.
 """
 
+import csv
 import os
 import subprocess
 import sys
@@ -415,6 +416,120 @@ class GruposSinEvaluarTests(TestCase):
     def test_sin_pendientes_lo_dice(self):
         Alumno.objects.exclude(pk=self.menor.pk).update(activo=False)
         self.assertContains(self.panel(), "Todos los grupos con alumnos tienen evaluaciones")
+
+
+class ExportarCsvTests(TestCase):
+    """RF-10: CSV del padrón y de evaluaciones, en UTF-8 con BOM, solo administrador y secretaria."""
+
+    @classmethod
+    def setUpTestData(cls):
+        cls.tutor = crear_tutor()
+        cls.diego = crear_alumno(tutor=cls.tutor)  # MENOR · Martes y Jueves
+        cls.lucia = crear_alumno(
+            nombre="Lucía Núñez", categoria=Categoria.MINI, horario=Horario.LUN_MIE, tutor=cls.tutor
+        )
+        cls.baja = crear_alumno(nombre="Iker Ruiz", tutor=cls.tutor, activo=False)
+        cls.entrenador = usuario_con_grupo("toño", "entrenador")
+        Evaluacion.objects.create(
+            alumno=cls.diego, fecha=date(2026, 3, 2), pase=7, recepcion=8, tiro=8,
+            observaciones="Mejoró la recepción", capturada_por=cls.entrenador,
+        )
+        Evaluacion.objects.create(
+            alumno=cls.diego, fecha=date(2026, 3, 9), pase=8, recepcion=8, tiro=9,
+            observaciones="=HYPERLINK(\"http://x\")",
+        )
+        Evaluacion.objects.create(alumno=cls.baja, fecha=date(2026, 3, 2), pase=5, recepcion=5, tiro=5)
+        Evaluacion.objects.create(alumno=cls.lucia, fecha=date(2026, 3, 3), pase=6, recepcion=6, tiro=6)
+
+    def setUp(self):
+        self.client.force_login(usuario_con_grupo("sec", "secretaria"))
+
+    def descargar(self, url, **params):
+        respuesta = self.client.get(url, params)
+        self.assertEqual(respuesta.status_code, 200)
+        self.assertEqual(respuesta["Content-Type"], "text/csv; charset=utf-8")
+        self.assertIn("attachment;", respuesta["Content-Disposition"])
+        contenido = respuesta.content
+        self.assertTrue(contenido.startswith(b"\xef\xbb\xbf"), "falta el BOM de UTF-8")
+        return list(csv.reader(StringIO(contenido.decode("utf-8-sig"))))
+
+    def test_padron_completo_con_acentos_y_bajas(self):
+        filas = self.descargar(reverse("padron_csv"))
+        self.assertEqual(filas[0][:3], ["Folio", "Nombre", "Fecha de nacimiento"])
+        self.assertIn("Categoría", filas[0])
+        por_nombre = {f[1]: f for f in filas[1:]}
+        self.assertEqual(set(por_nombre), {"Diego Salinas Ruiz", "Lucía Núñez", "Iker Ruiz"})
+        self.assertEqual(por_nombre["Lucía Núñez"][0], self.lucia.folio)
+        self.assertEqual(por_nombre["Iker Ruiz"][5], "Baja")
+        self.assertEqual(por_nombre["Diego Salinas Ruiz"][7], "55 1234 5678")
+
+    def test_padron_respeta_busqueda_y_grupo(self):
+        filas = self.descargar(reverse("padron_csv"), grupo="MINI-LUN_MIE")
+        self.assertEqual([f[1] for f in filas[1:]], ["Lucía Núñez"])
+        filas = self.descargar(reverse("padron_csv"), q=self.diego.folio)
+        self.assertEqual([f[1] for f in filas[1:]], ["Diego Salinas Ruiz"])
+
+    def test_evaluaciones_del_grupo_solo_alumnos_activos(self):
+        filas = self.descargar(reverse("evaluaciones_grupo_csv"), grupo="MENOR-MAR_JUE")
+        self.assertEqual(filas[0], [
+            "Folio", "Alumno", "Categoría", "Horario", "Fecha",
+            "Pase", "Recepción", "Tiro", "Promedio", "Observaciones", "Capturada por",
+        ])
+        self.assertEqual(
+            filas[1],
+            [self.diego.folio, "Diego Salinas Ruiz", "Menor", "Martes y Jueves", "02/03/2026",
+             "7", "8", "8", "7.7", "Mejoró la recepción", "toño"],
+        )
+        self.assertEqual([f[1] for f in filas[1:]], ["Diego Salinas Ruiz"] * 2)
+
+    def test_evaluaciones_de_un_alumno_aunque_este_de_baja(self):
+        filas = self.descargar(reverse("evaluaciones_alumno_csv", args=[self.baja.pk]))
+        self.assertEqual(len(filas), 2)
+        self.assertEqual(filas[1][1], "Iker Ruiz")
+
+    def test_celdas_que_parecen_formula_no_se_ejecutan_en_excel(self):
+        filas = self.descargar(reverse("evaluaciones_alumno_csv", args=[self.diego.pk]))
+        self.assertEqual(filas[2][9], "'=HYPERLINK(\"http://x\")")
+
+    def test_grupo_invalido_regresa_al_padron(self):
+        respuesta = self.client.get(reverse("evaluaciones_grupo_csv"), {"grupo": "OTRO"})
+        self.assertRedirects(respuesta, reverse("padron"))
+
+    def test_administrador_puede_exportar(self):
+        self.client.force_login(usuario_con_grupo("adm", "administrador"))
+        self.descargar(reverse("padron_csv"))
+
+    def test_entrenador_y_tutor_no_pueden_exportar(self):
+        urls = [
+            reverse("padron_csv"),
+            reverse("evaluaciones_grupo_csv") + "?grupo=MENOR-MAR_JUE",
+            reverse("evaluaciones_alumno_csv", args=[self.diego.pk]),
+        ]
+        # Como en el resto de la web: al entrenador se le regresa a su pantalla
+        # y quien no tiene rol de oficina (el tutor) recibe 403. Nunca el CSV.
+        esperado = {self.entrenador: 302, usuario_con_grupo("5512345678", "tutor"): 403}
+        for usuario, codigo in esperado.items():
+            self.client.force_login(usuario)
+            for url in urls:
+                respuesta = self.client.get(url)
+                self.assertEqual(respuesta.status_code, codigo, (usuario, url))
+                self.assertNotIn("text/csv", respuesta.get("Content-Type", ""))
+
+    def test_sin_sesion_manda_al_login(self):
+        self.client.logout()
+        respuesta = self.client.get(reverse("padron_csv"))
+        self.assertEqual(respuesta.status_code, 302)
+        self.assertIn(reverse("login"), respuesta["Location"])
+
+    def test_las_pantallas_tienen_los_botones_de_exportar(self):
+        self.assertContains(
+            self.client.get(reverse("padron"), {"grupo": "MENOR-MAR_JUE"}),
+            reverse("evaluaciones_grupo_csv") + "?grupo=MENOR-MAR_JUE",
+        )
+        self.assertContains(
+            self.client.get(reverse("ficha", args=[self.diego.pk])),
+            reverse("evaluaciones_alumno_csv", args=[self.diego.pk]),
+        )
 
 
 class SecretariaTests(TestCase):

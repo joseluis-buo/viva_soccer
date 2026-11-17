@@ -8,7 +8,13 @@
     <h1 class="titulo mt-1 text-4xl">PADRÓN</h1>
   </div>
   <div class="flex flex-wrap gap-3">
+    <a href="{% url 'padron_csv' %}?grupo={{ grupo|urlencode }}&q={{ q|urlencode }}" class="btn-fantasma">
+      Exportar padrón (CSV)
+    </a>
     {% if grupo %}
+    <a href="{% url 'evaluaciones_grupo_csv' %}?grupo={{ grupo|urlencode }}" class="btn-fantasma">
+      Evaluaciones del grupo (CSV)
+    </a>
     <a href="{% url 'boletas_grupo' %}?grupo={{ grupo|urlencode }}" target="_blank" class="btn-fantasma">
       Imprimir boletas del grupo
     </a>

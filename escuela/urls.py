@@ -1,7 +1,7 @@
 from django.contrib.auth import views as auth_views
 from django.urls import path
 
-from . import views
+from . import exportar, views
 
 urlpatterns = [
     path("", views.raiz, name="raiz"),
@@ -27,6 +27,13 @@ urlpatterns = [
     path("evaluaciones/<int:pk>/editar/", views.evaluacion_editar, name="evaluacion_editar"),
     path("evaluaciones/<int:pk>/eliminar/", views.evaluacion_eliminar, name="evaluacion_eliminar"),
     path("boletas/", views.boletas_grupo, name="boletas_grupo"),
+    path("exportar/padron.csv", exportar.padron_csv, name="padron_csv"),
+    path("exportar/evaluaciones.csv", exportar.evaluaciones_grupo_csv, name="evaluaciones_grupo_csv"),
+    path(
+        "padron/<int:pk>/evaluaciones.csv",
+        exportar.evaluaciones_alumno_csv,
+        name="evaluaciones_alumno_csv",
+    ),
     path("tutores/", views.tutores, name="tutores"),
     path("tutores/nuevo/", views.tutor_nuevo, name="tutor_nuevo"),
     path("tutores/<int:pk>/editar/", views.tutor_editar, name="tutor_editar"),
