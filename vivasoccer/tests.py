@@ -9,7 +9,9 @@ import os
 import subprocess
 import sys
 from pathlib import Path
+from unittest import skipIf
 
+from django.db import connection
 from django.test import SimpleTestCase
 
 from .sentry import quitar_datos_personales
@@ -156,3 +158,32 @@ class SentrySinDatosPersonalesTests(SimpleTestCase):
     def test_un_evento_sin_peticion_pasa_igual(self):
         evento = {"message": "tarea fallida"}
         self.assertEqual(quitar_datos_personales(evento, hint={}), {"message": "tarea fallida"})
+
+
+@skipIf(os.environ.get("TEST_POSTGRES") == "1", "Con TEST_POSTGRES=1 se usa PostgreSQL a propósito.")
+class PruebasSinNeonTests(SimpleTestCase):
+    """`manage.py test` nunca se conecta a Neon, aunque el .env tenga su DATABASE_URL."""
+
+    def test_las_pruebas_usan_sqlite_en_memoria(self):
+        self.assertEqual(connection.vendor, "sqlite")
+        # Django renombra ":memory:" a "file:memorydb_default?mode=memory..." al
+        # crear la base de pruebas; las dos son SQLite en memoria.
+        self.assertIn("memory", connection.settings_dict["NAME"])
+
+    def test_los_procesos_hijos_heredan_sqlite_y_no_leen_el_env(self):
+        # Sin assertEqual: si fallara, imprimiría la URL del .env con su contraseña.
+        self.assertTrue(
+            os.environ["DATABASE_URL"] == "sqlite://:memory:",
+            "Las pruebas no exportaron DATABASE_URL=sqlite://:memory: (valor oculto a propósito).",
+        )
+        # Un proceso lanzado sin `env=` hereda el entorno de las pruebas tal cual.
+        # Solo lee la configuración; no abre ninguna conexión.
+        proceso = subprocess.run(
+            [sys.executable, "-c",
+             "import django; django.setup(); from django.db import connection as c; "
+             "print(c.vendor, c.settings_dict['NAME'])"],
+            cwd=RAIZ, capture_output=True, text=True,
+            env={**os.environ, "DJANGO_SETTINGS_MODULE": "vivasoccer.settings"},
+        )
+        self.assertEqual(proceso.returncode, 0, proceso.stderr)
+        self.assertEqual(proceso.stdout.strip(), "sqlite :memory:")

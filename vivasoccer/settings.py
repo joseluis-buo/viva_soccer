@@ -185,6 +185,10 @@ if sys.argv[1:2] == ['test']:
                 'NAME': ':memory:',
             }
         }
+        # Algunas pruebas importan settings en otro proceso, que no se llama
+        # `test` y leería la DATABASE_URL de Neon del .env. Esos procesos heredan
+        # esta variable, y load_dotenv no pisa una que ya existe.
+        os.environ['DATABASE_URL'] = 'sqlite://:memory:'
 
 
 # Password validation
