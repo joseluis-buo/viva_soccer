@@ -4,6 +4,7 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
+  {% include "_cabeza_comun.html" %}
   <title>Entrar · VIVA SOCCER</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -11,7 +12,7 @@
   <link rel="stylesheet" href="{% static 'css/tailwind.css' %}">
 </head>
 <body class="min-h-screen bg-bg-base font-sans text-text-primary">
-  <section class="grid min-h-screen grid-cols-1 md:grid-cols-2">
+  <main class="grid min-h-screen grid-cols-1 md:grid-cols-2">
 
     {# --- Lado de marca --- #}
     <div class="relative flex flex-col justify-between overflow-hidden bg-bg-surface px-8 py-16 sm:px-12">
@@ -65,6 +66,6 @@
       </form>
     </div>
 
-  </section>
+  </main>
 </body>
 </html>

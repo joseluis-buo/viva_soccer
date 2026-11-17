@@ -15,6 +15,7 @@ Cubren lo que una entrega de avance necesita demostrar:
 
 import csv
 import os
+import re
 import subprocess
 import sys
 from datetime import date, timedelta
@@ -530,6 +531,45 @@ class ExportarCsvTests(TestCase):
             self.client.get(reverse("ficha", args=[self.diego.pk])),
             reverse("evaluaciones_alumno_csv", args=[self.diego.pk]),
         )
+
+
+class AccesibilidadTests(TestCase):
+    """Lo que marcó Lighthouse el 16 nov 2026: etiquetas en captura, <main> en login,
+    descripción y favicon en todas las páginas."""
+
+    @classmethod
+    def setUpTestData(cls):
+        cls.alumno = crear_alumno()
+        cls.admin = usuario_con_grupo("adm", "administrador")
+
+    def test_grupo_y_fecha_de_captura_tienen_etiqueta_visible(self):
+        self.client.force_login(self.admin)
+        html = self.client.get(reverse("captura")).content.decode()
+        # La etiqueta envuelve al control: así el lector de pantalla los asocia.
+        self.assertRegex(html, r'<label[^>]*>\s*<span class="etiqueta">Grupo</span>\s*<select name="grupo"')
+        self.assertRegex(html, r'<label[^>]*>\s*<span class="etiqueta">Fecha</span>\s*<input type="date" name="fecha"')
+
+    def test_login_tiene_region_main(self):
+        html = self.client.get(reverse("login")).content.decode()
+        self.assertEqual(html.count("<main"), 1)
+
+    def test_todas_las_paginas_tienen_descripcion_y_favicon(self):
+        self.client.force_login(self.admin)
+        paginas = [reverse("dashboard"), reverse("captura"), reverse("boleta", args=[self.alumno.pk])]
+        respuestas = [self.client.get(url) for url in paginas]
+        self.client.logout()
+        respuestas.append(self.client.get(reverse("login")))
+        for respuesta in respuestas:
+            self.assertContains(respuesta, '<meta name="description"', count=1)
+            self.assertContains(respuesta, 'rel="icon" href="/static/img/favicon.svg"', count=1)
+
+    def test_el_favicon_solo_usa_colores_de_los_tokens(self):
+        raiz = Path(__file__).resolve().parent.parent
+        tokens = set(re.findall(r"#[0-9A-Fa-f]{6}", (raiz / "tailwind.config.js").read_text()))
+        svg = (raiz / "static" / "img" / "favicon.svg").read_text()
+        usados = set(re.findall(r"#[0-9A-Fa-f]{6}", svg))
+        self.assertTrue(usados)
+        self.assertLessEqual({c.upper() for c in usados}, {c.upper() for c in tokens})
 
 
 class SecretariaTests(TestCase):

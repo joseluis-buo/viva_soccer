@@ -1,0 +1,10 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64">
+  <!-- Favicon de VIVA SOCCER: el logo tipográfico "VS".
+       Colores = tokens de tailwind.config.js: bg-base #12081F y accent #C6FF00.
+       Un SVG de favicon no carga fuentes web: si no está Barlow Condensed
+       instalada, el navegador usa una condensada del sistema. -->
+  <rect width="64" height="64" rx="12" fill="#12081F"/>
+  <text x="33" y="46" text-anchor="middle" fill="#C6FF00"
+        font-family="'Barlow Condensed', 'Arial Narrow', sans-serif"
+        font-size="38" font-weight="800" font-style="italic" letter-spacing="-1">VS</text>
+</svg>

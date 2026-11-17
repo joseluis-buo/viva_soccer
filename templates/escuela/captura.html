@@ -7,13 +7,20 @@
 
 {# --- Selector de grupo y fecha (recarga al cambiar) --- #}
 <form method="get" class="mt-6 flex flex-wrap gap-3">
-  <select name="grupo" onchange="this.form.submit()" class="campo max-w-xs">
-    {% for valor, etiqueta in grupos %}
-      <option value="{{ valor }}" {% if valor == grupo %}selected{% endif %}>{{ etiqueta }}</option>
-    {% endfor %}
-  </select>
-  <input type="date" name="fecha" value="{{ fecha|date:'Y-m-d' }}" onchange="this.form.submit()"
-         class="campo w-44">
+  <label class="flex w-full max-w-xs flex-col gap-2">
+    <span class="etiqueta">Grupo</span>
+    <select name="grupo" onchange="this.form.submit()" class="campo">
+      {% for valor, etiqueta in grupos %}
+        <option value="{{ valor }}" {% if valor == grupo %}selected{% endif %}>{{ etiqueta }}</option>
+      {% endfor %}
+    </select>
+  </label>
+  <label class="flex w-44 flex-col gap-2">
+    <span class="etiqueta">Fecha</span>
+    {# color-scheme oscuro: sin él, el ícono del calendario sale negro sobre el fondo. #}
+    <input type="date" name="fecha" value="{{ fecha|date:'Y-m-d' }}" onchange="this.form.submit()"
+           class="campo [color-scheme:dark]">
+  </label>
 </form>
 
 <div class="mt-4">
