@@ -1,5 +1,7 @@
 # VIVA SOCCER
 
+[![CI](https://github.com/joseluis-buo/viva_soccer/actions/workflows/ci.yml/badge.svg?branch=main)](https://github.com/joseluis-buo/viva_soccer/actions/workflows/ci.yml)
+
 App web para gestionar una escuela de fútbol infantil en Tijuana: padrón de
 alumnos, captura de evaluaciones en la cancha y seguimiento de la progresión
 por temporada.

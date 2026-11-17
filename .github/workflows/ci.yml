@@ -1,0 +1,58 @@
+# Corre en cada push y pull request a main. Si algo falla, el commit sale en
+# rojo en GitHub; Railway despliega aparte, así que revisen el CI antes de
+# hacer merge.
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+jobs:
+  pruebas:
+    runs-on: ubuntu-latest
+
+    # Una base PostgreSQL desechable, como la de Neon pero solo para el CI.
+    services:
+      postgres:
+        image: postgres:16
+        env:
+          POSTGRES_USER: vivasoccer
+          POSTGRES_PASSWORD: vivasoccer
+          POSTGRES_DB: vivasoccer
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 10
+
+    env:
+      # Credenciales de la base desechable de arriba, no de Neon.
+      DATABASE_URL: postgresql://vivasoccer:vivasoccer@localhost:5432/vivasoccer
+      TEST_POSTGRES: "1"
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version-file: .python-version
+          cache: pip
+
+      - name: Instalar dependencias
+        run: pip install -r requirements.txt
+
+      - name: Revisión de Django
+        run: python manage.py check
+
+      - name: Migraciones al día
+        run: python manage.py makemigrations --check --dry-run
+
+      - name: Pruebas con PostgreSQL
+        run: python manage.py test
+
+      - name: Compilar Tailwind
+        run: python bin/compilar_css.py
