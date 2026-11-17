@@ -56,3 +56,27 @@ jobs:
 
       - name: Compilar Tailwind
         run: python bin/compilar_css.py
+
+  # Prueba de punta a punta con un navegador real. Job aparte: sin PostgreSQL ni
+  # DATABASE_URL; la prueba crea su propia base SQLite con seed_demo.
+  e2e:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version-file: .python-version
+          cache: pip
+
+      - name: Instalar dependencias
+        run: pip install -r requirements.txt -r requirements-e2e.txt
+
+      - name: Instalar Chromium para Playwright
+        run: playwright install --with-deps chromium
+
+      - name: Compilar Tailwind
+        run: python bin/compilar_css.py
+
+      - name: Prueba E2E de la captura
+        run: python -m unittest discover -s e2e -v

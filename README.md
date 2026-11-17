@@ -284,6 +284,24 @@ el guardado de la pantalla de captura, las funciones de secretaria (tutores,
 baja, corrección de evaluaciones y boletas) y la API móvil (login con JWT,
 renovación de tokens y activación de tutores).
 
+### Prueba de punta a punta (E2E)
+
+`e2e/test_captura.py` maneja un navegador real con Playwright, en tamaño de
+celular: el entrenador inicia sesión, captura pase, recepción y tiro de un
+alumno, y la prueba revisa en la base que se guardó.
+
+```bash
+pip install -r requirements-e2e.txt   # solo para esta prueba
+playwright install chromium           # el navegador (~130 MB, una vez)
+python -m unittest discover -s e2e -v
+```
+
+Levanta su propio `runserver` con una base **SQLite temporal** y `seed_demo`,
+y la borra al terminar. Fija `DATABASE_URL` a ese archivo (le gana al `.env`)
+y se niega a empezar si Django no está usando SQLite: nunca toca Neon.
+`manage.py test` no la corre, para que nadie necesite un navegador para la
+suite normal; en el CI corre como un job aparte (`e2e`).
+
 ## Estructura
 
 ```
