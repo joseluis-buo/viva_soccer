@@ -105,6 +105,7 @@ migraciones de datos. Después, `seed_demo`.
 | `DJANGO_ALLOWED_HOSTS`   | Hosts permitidos, separados por coma       | `127.0.0.1,localhost`; error si `DEBUG` está apagado |
 | `DJANGO_CSRF_TRUSTED`    | Orígenes de confianza para CSRF, con `https://` | Ninguno                               |
 | `TEST_POSTGRES`          | `1` corre las pruebas contra `DATABASE_URL` | Pruebas en SQLite en memoria              |
+| `SENTRY_DSN`             | Manda los errores a Sentry, sin datos personales (`vivasoccer/sentry.py`) | Sentry apagado: no se manda nada |
 
 **En desarrollo** se ponen en un archivo `.env` en la raíz (copia de
 `.env.example`), que `settings.py` carga al arrancar con `python-dotenv`. El
@@ -172,6 +173,7 @@ En el servicio → **Variables**:
 | `DJANGO_ALLOWED_HOSTS` | El dominio de Railway, sin `https://`: `vivasoccer.up.railway.app` |
 | `DJANGO_CSRF_TRUSTED`  | El mismo dominio, con `https://`: `https://vivasoccer.up.railway.app` |
 | `DJANGO_DEBUG`         | `0` (opcional: en Railway `DEBUG` se apaga siempre) |
+| `SENTRY_DSN`           | El DSN del proyecto de Sentry (opcional; sin él no se reportan errores) |
 
 Para generar la llave:
 

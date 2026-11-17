@@ -295,3 +295,12 @@ if sys.argv[1:2] == ['test']:
 # https://docs.djangoproject.com/en/5.2/ref/settings/#default-auto-field
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
+
+# Monitoreo de errores (Sentry). Solo si Railway define SENTRY_DSN; en
+# desarrollo, pruebas y CI no se manda nada. Lo que se envía y lo que no
+# está en vivasoccer/sentry.py.
+SENTRY_DSN = os.environ.get('SENTRY_DSN')
+if SENTRY_DSN:
+    from vivasoccer.sentry import configurar_sentry
+
+    configurar_sentry(SENTRY_DSN, entorno='produccion' if EN_RAILWAY else 'desarrollo')
