@@ -130,11 +130,27 @@ tiene base propia, y la web y la app móvil de producción comparten la misma.
 
 | Archivo                | Para qué |
 |------------------------|----------|
-| `railway.json`         | Build, migraciones y comando de inicio (Railway lo lee solo) |
 | `.python-version`      | Python 3.12 (sin él, Railway usaría 3.13) |
 | `bin/compilar_css.py`  | Descarga Tailwind v3.4.17 si falta y compila el CSS |
+| `railway.json`         | **En retiro.** Railway deja de leerlo el 2026-12-01; su contenido pasó al panel (abajo) |
 
-Una vez conectado el repositorio, en cada push a `main` Railway hace esto:
+### Configuración del servicio en el panel de Railway
+
+Railway retiró *Config as Code* (`railway.json`): deja de leerse el
+2026-12-01. Su reemplazo, *Infrastructure as Code*, pide Node o un SDK en
+beta, así que la configuración vive en el panel del servicio (**Settings**).
+Si alguien la cambia, que actualice esta tabla.
+
+| Sección del panel | Campo | Valor |
+|-------------------|-------|-------|
+| Build    | Builder                | `Railpack` |
+| Build    | Custom Build Command   | `python bin/compilar_css.py && python manage.py collectstatic --noinput` |
+| Deploy   | Pre-deploy Command     | `python manage.py migrate --noinput` |
+| Deploy   | Custom Start Command   | `gunicorn vivasoccer.wsgi --workers 2 --access-logfile -` |
+| Deploy   | Restart Policy         | `On Failure`, máximo `3` reintentos |
+| Config-as-code | Railway Config File | Vacío (sin ruta) |
+
+En cada push a `main` Railway hace esto:
 
 1. **Build**: instala `requirements.txt`, compila el CSS de Tailwind y corre
    `collectstatic`. WhiteNoise sirve los estáticos desde gunicorn, comprimidos
