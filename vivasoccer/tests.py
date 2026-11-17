@@ -54,7 +54,8 @@ entorno_wsgi = {
     "SERVER_NAME": "localhost", "SERVER_PORT": "80", "HTTP_HOST": "localhost",
     "wsgi.url_scheme": "http", "wsgi.input": io.BytesIO(cuerpo), "wsgi.errors": io.StringIO(),
     "CONTENT_TYPE": "application/x-www-form-urlencoded", "CONTENT_LENGTH": str(len(cuerpo)),
-    "HTTP_COOKIE": f"csrftoken={TOKEN}; sessionid=cookie-de-prueba",
+    # Sin cookie de sesión: con ella, el login consultaría django_session en la base.
+    "HTTP_COOKIE": f"csrftoken={TOKEN}; preferencia=cookie-de-prueba",
     "HTTP_X_ALUMNO": "Diego Salinas Ruiz", "REMOTE_ADDR": "10.9.8.7",
 }
 estado = []
@@ -69,7 +70,14 @@ def correr(codigo, **variables):
         k: v for k, v in os.environ.items()
         if k not in ("SENTRY_DSN", "DATABASE_URL", "RAILWAY_ENVIRONMENT_NAME")
     }
-    entorno.update(DJANGO_SETTINGS_MODULE="vivasoccer.settings", DJANGO_DEBUG="1", **variables)
+    entorno.update(
+        DJANGO_SETTINGS_MODULE="vivasoccer.settings",
+        DJANGO_DEBUG="1",
+        # SQLite en memoria, explícito: le gana a la DATABASE_URL del .env, así
+        # que estas pruebas nunca se conectan a Neon aunque algo consulte la base.
+        DATABASE_URL="sqlite://:memory:",
+        **variables,
+    )
     return subprocess.run(
         [sys.executable, "-c", codigo], cwd=RAIZ, env=entorno, capture_output=True, text=True
     )
