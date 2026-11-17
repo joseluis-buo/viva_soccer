@@ -50,6 +50,32 @@
   </div>
 </div>
 
+{# --- RF-07: grupos sin evaluaciones recientes --- #}
+<div class="tarjeta mt-6">
+  <div class="flex flex-wrap items-baseline justify-between gap-3">
+    <h2 class="titulo text-2xl">GRUPOS SIN EVALUAR</h2>
+    <p class="font-mono text-xs text-text-muted">Últimos {{ dias_sin_evaluar }} días</p>
+  </div>
+  {% if sin_evaluar %}
+  <div class="mt-3 flex flex-col">
+    {% for g in sin_evaluar %}
+    <a href="{% url 'captura' %}?grupo={{ g.clave|urlencode }}"
+       class="flex flex-wrap items-center justify-between gap-3 border-b border-border py-3 transition-colors last:border-b-0 hover:bg-border/40">
+      <span class="text-sm font-semibold">{{ g.nombre }}</span>
+      <span class="flex items-center gap-3">
+        <span class="font-mono text-xs text-text-muted">
+          {% if g.ultima %}Última: {{ g.ultima|date:"d/m/Y" }}{% else %}Nunca evaluado{% endif %}
+        </span>
+        <span class="inline-block rounded-full border border-danger px-2 py-0.5 text-[10px] font-bold tracking-[0.08em] text-danger">SIN EVALUAR</span>
+      </span>
+    </a>
+    {% endfor %}
+  </div>
+  {% else %}
+  <p class="mt-3 text-sm text-success">Todos los grupos con alumnos tienen evaluaciones de los últimos {{ dias_sin_evaluar }} días.</p>
+  {% endif %}
+</div>
+
 {# --- Gráfica + progreso --- #}
 <div class="mt-6 grid gap-6 lg:grid-cols-2">
   <div class="tarjeta">

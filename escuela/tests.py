@@ -352,6 +352,71 @@ class BusquedaPadronTests(TestCase):
         self.assertEqual(list(respuesta.context["pagina"]), [])
 
 
+class GruposSinEvaluarTests(TestCase):
+    """RF-07: el panel avisa qué grupos llevan 7 días o más sin evaluaciones."""
+
+    @classmethod
+    def setUpTestData(cls):
+        cls.hoy = timezone.localdate()
+        cls.tutor = crear_tutor()
+        # MENOR · Martes y Jueves: evaluado hace 6 días (todavía cuenta).
+        cls.menor = crear_alumno(tutor=cls.tutor)
+        cls.evaluar(cls.menor, dias_atras=6)
+        # MINI · Lunes y Miércoles: su última evaluación fue hace 7 días.
+        cls.mini = crear_alumno(
+            nombre="Lucía Ruiz", categoria=Categoria.MINI, horario=Horario.LUN_MIE, tutor=cls.tutor
+        )
+        cls.evaluar(cls.mini, dias_atras=7)
+        # MAYOR · Lunes y Miércoles: tiene alumno pero nunca se ha evaluado.
+        crear_alumno(
+            nombre="Iker Ruiz", categoria=Categoria.MAYOR, horario=Horario.LUN_MIE, tutor=cls.tutor
+        )
+        # MAYOR · Martes y Jueves: solo un alumno dado de baja; no hay a quién evaluar.
+        crear_alumno(
+            nombre="Sofía Ruiz", categoria=Categoria.MAYOR, horario=Horario.MAR_JUE,
+            tutor=cls.tutor, activo=False,
+        )
+
+    @classmethod
+    def evaluar(cls, alumno, dias_atras):
+        Evaluacion.objects.create(
+            alumno=alumno, fecha=cls.hoy - timedelta(days=dias_atras), pase=7, recepcion=7, tiro=7
+        )
+
+    def setUp(self):
+        self.client.force_login(usuario_con_grupo("adm", "administrador"))
+
+    def panel(self):
+        respuesta = self.client.get(reverse("dashboard"))
+        self.assertEqual(respuesta.status_code, 200)
+        return respuesta
+
+    def test_salen_los_grupos_sin_evaluaciones_en_7_dias(self):
+        sin_evaluar = {g["clave"]: g["ultima"] for g in self.panel().context["sin_evaluar"]}
+        self.assertEqual(
+            sin_evaluar,
+            {
+                "MINI-LUN_MIE": self.hoy - timedelta(days=7),
+                "MAYOR-LUN_MIE": None,
+            },
+        )
+
+    def test_la_tarjeta_muestra_la_ultima_fecha_o_nunca(self):
+        respuesta = self.panel()
+        self.assertContains(respuesta, "GRUPOS SIN EVALUAR")
+        self.assertContains(respuesta, f"Última: {self.hoy - timedelta(days=7):%d/%m/%Y}")
+        self.assertContains(respuesta, "Nunca evaluado")
+
+    def test_una_evaluacion_de_hoy_quita_al_grupo_de_la_lista(self):
+        self.evaluar(self.mini, dias_atras=0)
+        claves = [g["clave"] for g in self.panel().context["sin_evaluar"]]
+        self.assertEqual(claves, ["MAYOR-LUN_MIE"])
+
+    def test_sin_pendientes_lo_dice(self):
+        Alumno.objects.exclude(pk=self.menor.pk).update(activo=False)
+        self.assertContains(self.panel(), "Todos los grupos con alumnos tienen evaluaciones")
+
+
 class SecretariaTests(TestCase):
     @classmethod
     def setUpTestData(cls):

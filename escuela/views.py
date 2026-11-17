@@ -1,8 +1,10 @@
+from datetime import timedelta
+
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
 from django.core.exceptions import PermissionDenied
 from django.core.paginator import Paginator
-from django.db.models import Avg, Count, Q
+from django.db.models import Avg, Count, Max, Q
 from django.http import HttpResponse
 from django.shortcuts import get_object_or_404, redirect, render
 from django.urls import reverse
@@ -43,6 +45,31 @@ def _polilinea(valores, ancho=380, alto=110, vmin=0, vmax=10):
         y = round(alto - (v - vmin) / (vmax - vmin) * alto, 1)
         puntos.append(f"{x},{y}")
     return " ".join(puntos)
+
+
+# RF-07: un grupo que lleva más de estos días sin evaluaciones sale en el panel.
+DIAS_SIN_EVALUAR = 7
+
+
+def _grupos_sin_evaluar(hoy):
+    """Grupos con alumnos activos y sin evaluaciones en los últimos DIAS_SIN_EVALUAR días.
+
+    Una sola consulta: por grupo, la fecha de la evaluación más reciente de sus
+    alumnos activos. Los grupos sin alumnos activos no salen: no hay a quién evaluar.
+    """
+    desde = hoy - timedelta(days=DIAS_SIN_EVALUAR - 1)  # hoy cuenta como uno de los 7
+    ultimas = {
+        f"{fila['categoria']}-{fila['horario']}": fila["ultima"]
+        for fila in Alumno.objects.filter(activo=True)
+        .order_by()
+        .values("categoria", "horario")
+        .annotate(ultima=Max("evaluaciones__fecha"))
+    }
+    return [
+        {"clave": clave, "nombre": nombre, "ultima": ultimas[clave]}
+        for clave, nombre in GRUPOS
+        if clave in ultimas and (ultimas[clave] is None or ultimas[clave] < desde)
+    ]
 
 
 @login_required
@@ -126,6 +153,8 @@ def dashboard(request):
             "promedio_tiro": promedio_tiro,
             "grafica": grafica,
             "progreso": progreso[:5],
+            "sin_evaluar": _grupos_sin_evaluar(hoy),
+            "dias_sin_evaluar": DIAS_SIN_EVALUAR,
             "hoy": hoy,
         },
     )
