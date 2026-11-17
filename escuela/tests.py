@@ -259,6 +259,25 @@ class CapturaTests(TestCase):
         self.assertEqual((ev.pase, ev.recepcion, ev.tiro), (7, 8, 6))
         self.assertEqual(ev.capturada_por, self.entrenador)
 
+    def _mensaje_al_guardar(self, alumnos):
+        url = reverse("captura") + "?grupo=MINI-LUN_MIE&fecha=2026-09-08"
+        datos = {}
+        for alumno in alumnos:
+            datos.update({f"pase_{alumno.id}": "7", f"recepcion_{alumno.id}": "8",
+                          f"tiro_{alumno.id}": "6"})
+        respuesta = self.client.post(url, datos, follow=True)
+        return [str(m) for m in respuesta.context["messages"]]
+
+    def test_mensaje_en_singular_al_guardar_una_evaluacion(self):
+        self.assertEqual(self._mensaje_al_guardar([self.alumno]), ["Se guardó 1 evaluación."])
+
+    def test_mensaje_en_plural_al_guardar_varias_o_ninguna(self):
+        otro = crear_alumno(nombre="Lucía Ruiz", categoria=Categoria.MINI,
+                            horario=Horario.LUN_MIE, tutor=self.alumno.tutor)
+        self.assertEqual(self._mensaje_al_guardar([self.alumno, otro]),
+                         ["Se guardaron 2 evaluaciones."])
+        self.assertEqual(self._mensaje_al_guardar([]), ["Se guardaron 0 evaluaciones."])
+
     def test_guarda_las_observaciones_y_las_vuelve_a_mostrar(self):
         url = reverse("captura") + "?grupo=MINI-LUN_MIE&fecha=2026-09-08"
         self.client.post(

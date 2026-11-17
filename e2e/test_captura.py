@@ -146,7 +146,7 @@ class CapturaE2ETests(unittest.TestCase):
         tarjeta.get_by_label("OBSERVACIONES").fill("Buen control con la izquierda")
         pagina.get_by_role("button", name="GUARDAR").click()
 
-        expect(pagina.get_by_text("Se guardaron 1 evaluaciones.")).to_be_visible()
+        expect(pagina.get_by_text("Se guardó 1 evaluación.")).to_be_visible()
         # Después de recargar, la tarjeta conserva lo capturado.
         tarjeta = self.tarjeta_del_alumno()
         expect(tarjeta.get_by_label("PASE")).to_have_value("8")

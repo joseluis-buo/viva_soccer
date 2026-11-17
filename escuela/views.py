@@ -513,7 +513,10 @@ def captura(request):
                 },
             )
             guardadas += 1
-        messages.success(request, f"Se guardaron {guardadas} evaluaciones.")
+        if guardadas == 1:
+            messages.success(request, "Se guardó 1 evaluación.")
+        else:
+            messages.success(request, f"Se guardaron {guardadas} evaluaciones.")
         destino = f"{reverse('captura')}?grupo={grupo}&fecha={fecha.isoformat()}"
         return redirect(destino)
 
