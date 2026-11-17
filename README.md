@@ -119,13 +119,11 @@ las que ya existen.
 ## Despliegue en Railway
 
 > [!NOTE]
-> **Estado al 16 de noviembre de 2026: la app todavía no se ha desplegado.**
-> `railway.json` y esta sección dejan lista la configuración, pero no existe
-> ningún proyecto en Railway. Cuando se despliegue, actualizar esta nota con
-> la fecha y el dominio.
+> **En producción desde el 16 de noviembre de 2026:**
+> https://vivasoccer-production.up.railway.app
 
-El plan: la web y la API corren en un servicio de Railway conectado al
-repositorio de GitHub. **La base es la rama principal de Neon**: Railway no
+La web y la API corren en un servicio de Railway conectado al repositorio de
+GitHub. **La base es la rama principal de Neon**: Railway no
 tiene base propia, y la web y la app móvil de producción comparten la misma.
 
 ### Qué hay en el repositorio
