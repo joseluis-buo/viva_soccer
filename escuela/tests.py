@@ -621,6 +621,7 @@ class ComunicadoAdminTests(TestCase):
         self.assertEqual(respuesta.status_code, 403)
 
 
+@override_settings(DEBUG=True)  # seed_demo solo corre en desarrollo
 class SeedDemoTests(TestCase):
     def test_el_entrenador_demo_queda_con_grupos(self):
         call_command("seed_demo", stdout=StringIO())
@@ -662,7 +663,6 @@ class SeedDemoTests(TestCase):
         call_command("seed_demo", stdout=StringIO())
         self.assertTrue(CodigoActivacion.objects.get(codigo="CANCHA26").vigente)
 
-    @override_settings(DEBUG=True)
     def test_reset_borra_las_cuentas_de_los_papas_para_activar_desde_cero(self):
         call_command("seed_demo", stdout=StringIO())
         CodigoActivacion.objects.get(codigo="CANCHA26").canjear("cancha-2026")
@@ -674,12 +674,36 @@ class SeedDemoTests(TestCase):
         self.assertFalse(User.objects.filter(username="5588712210").exists())
         self.assertTrue(User.objects.get(username="5512345678").check_password("tutor"))
 
+    @override_settings(DEBUG=False)
+    def test_con_debug_apagado_se_niega_y_no_crea_nada(self):
+        with self.assertRaisesMessage(CommandError, "DEBUG apagado"):
+            call_command("seed_demo", stdout=StringIO())
+        self.assertFalse(User.objects.exists())
+        self.assertFalse(Alumno.objects.exists())
+
+    def test_en_produccion_sale_con_error_y_mensaje_claro(self):
+        # Como lo correría alguien desde la terminal de Railway. La base es
+        # falsa: el comando debe negarse antes de conectarse a ella.
+        entorno = {
+            k: v for k, v in os.environ.items()
+            if k not in ConfiguracionProduccionTests.VARIABLES_DEL_PROYECTO
+        }
+        entorno.update(ConfiguracionProduccionTests.ENTORNO_RAILWAY)
+        proceso = subprocess.run(
+            [sys.executable, "manage.py", "seed_demo"],
+            cwd=ConfiguracionProduccionTests.RAIZ, env=entorno,
+            capture_output=True, text=True,
+        )
+        self.assertNotEqual(proceso.returncode, 0)
+        self.assertIn("seed_demo no se permite con DEBUG apagado", proceso.stderr)
+
 
 class ResetProtegidoTests(TestCase):
     """--reset borra datos de todo el equipo: pide el nombre de la base y nunca corre en producción."""
 
     def setUp(self):
-        call_command("seed_demo", stdout=StringIO())
+        with self.settings(DEBUG=True):
+            call_command("seed_demo", stdout=StringIO())
         self.alumnos = Alumno.objects.count()
 
     def reset(self, **opciones):

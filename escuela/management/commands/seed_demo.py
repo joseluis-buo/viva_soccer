@@ -4,9 +4,11 @@
 activación sin canjear. Es idempotente; usa --reset para
 borrar el padrón y volver a empezar.
 
+Con DEBUG apagado (producción) se niega a correr: crearía cuentas con
+contraseñas conocidas (admin/admin, secretaria/secretaria...).
+
 --reset borra datos de todos los que usan la misma base (el equipo comparte
-la de Neon), así que pide escribir el nombre de la base y se niega con DEBUG
-apagado."""
+la de Neon), así que además pide escribir el nombre de la base."""
 
 import random
 from datetime import date, timedelta
@@ -123,7 +125,7 @@ class Command(BaseCommand):
             action="store_true",
             help=(
                 "Borra alumnos, evaluaciones y cuentas de los padres antes de cargar. "
-                "Pide escribir el nombre de la base; con DEBUG apagado se niega."
+                "Pide escribir el nombre de la base."
             ),
         )
         parser.add_argument(
@@ -133,14 +135,17 @@ class Command(BaseCommand):
         )
 
     def handle(self, *args, **options):
+        if not settings.DEBUG:
+            raise CommandError(
+                "seed_demo no se permite con DEBUG apagado (producción): crearía "
+                "cuentas demo con contraseñas conocidas. No se cambió nada."
+            )
         if options["reset"]:
             self._confirmar_reset(options["confirmar"])
         self._sembrar(options["reset"])
 
     def _confirmar_reset(self, confirmacion):
         """Se revisa antes de abrir la transacción: no se espera al teclado con la base bloqueada."""
-        if not settings.DEBUG:
-            raise CommandError("--reset no se permite con DEBUG apagado (producción).")
         nombre = nombre_de_la_base()
         if confirmacion is None:
             self.stdout.write(
