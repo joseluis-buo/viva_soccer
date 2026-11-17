@@ -1,0 +1,154 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1000 680" font-family="P052, 'Palatino Linotype', serif">
+  <!-- Diagrama entidad-relación de los modelos reales (escuela/models.py + auth de Django). -->
+  <defs>
+    <style>
+      .caja { fill: #fff; stroke: #A67C2E; stroke-width: 1.6; }
+      .cab { fill: #141414; }
+      .cabtxt { fill: #E9C46A; font-size: 15px; font-weight: bold; }
+      .campo { fill: #222; font-size: 12.5px; }
+      .pk { fill: #8A6420; font-weight: bold; }
+      .fk { fill: #5A3E10; font-style: italic; }
+      .nota { fill: #7A6A4A; font-size: 11px; font-style: italic; }
+      .rel { stroke: #8A6420; stroke-width: 1.5; fill: none; }
+      .card { fill: #8A6420; font-size: 12px; font-weight: bold; }
+      .django { fill: #F3EAD6; }
+    </style>
+  </defs>
+
+  <!-- ===== Relaciones (debajo de las cajas) ===== -->
+  <!-- User N:M Group -->
+  <line class="rel" x1="615" y1="57" x2="750" y2="57"/>
+  <text class="card" x="622" y="50">N</text><text class="card" x="736" y="50">M</text>
+  <!-- AsignacionEntrenador N:1 User -->
+  <line class="rel" x1="250" y1="66" x2="385" y2="66"/>
+  <text class="card" x="256" y="60">N</text><text class="card" x="373" y="60">1</text>
+  <!-- Dispositivo N:1 User -->
+  <polyline class="rel" points="250,205 320,205 320,120 385,120"/>
+  <text class="card" x="256" y="199">N</text><text class="card" x="373" y="114">1</text>
+  <!-- Tutor 1:1 User (opcional) -->
+  <polyline class="rel" points="250,350 345,350 345,140 385,140" stroke-dasharray="5 3"/>
+  <text class="card" x="256" y="344">0..1</text><text class="card" x="373" y="134">1</text>
+  <!-- Alumno N:1 Tutor -->
+  <line class="rel" x1="385" y1="420" x2="250" y2="420"/>
+  <text class="card" x="370" y="414">N</text><text class="card" x="256" y="414">1</text>
+  <!-- Evaluacion N:1 Alumno -->
+  <line class="rel" x1="750" y1="430" x2="615" y2="430"/>
+  <text class="card" x="736" y="424">N</text><text class="card" x="622" y="424">1</text>
+  <!-- Evaluacion N:1 User (capturada_por) -->
+  <polyline class="rel" points="750,350 690,350 690,138 615,138"/>
+  <text class="card" x="736" y="344">N</text><text class="card" x="622" y="132">1</text>
+  <!-- Comunicado N:1 User (autor) -->
+  <polyline class="rel" points="750,200 660,200 660,100 615,100"/>
+  <text class="card" x="736" y="194">N</text><text class="card" x="622" y="94">1</text>
+  <!-- CodigoActivacion N:1 Tutor -->
+  <line class="rel" x1="135" y1="510" x2="135" y2="458"/>
+  <text class="card" x="141" y="503">N</text><text class="card" x="141" y="472">1</text>
+
+  <!-- ===== Entidades ===== -->
+  <!-- User (Django) -->
+  <g transform="translate(385,20)">
+    <rect class="caja django" width="230" height="128" rx="6"/>
+    <rect class="cab" width="230" height="28" rx="6"/><rect class="cab" y="20" width="230" height="8"/>
+    <text class="cabtxt" x="12" y="19">User  (Django)</text>
+    <text class="campo" x="12" y="48"><tspan class="pk">id</tspan>  PK</text>
+    <text class="campo" x="12" y="66">username</text>
+    <text class="campo" x="12" y="84">password  (hash)</text>
+    <text class="campo" x="12" y="102">is_active, is_staff</text>
+    <text class="campo" x="12" y="120">last_login</text>
+  </g>
+  <!-- Group (Django) -->
+  <g transform="translate(750,20)">
+    <rect class="caja django" width="230" height="92" rx="6"/>
+    <rect class="cab" width="230" height="28" rx="6"/><rect class="cab" y="20" width="230" height="8"/>
+    <text class="cabtxt" x="12" y="19">Group  (rol)</text>
+    <text class="campo" x="12" y="48"><tspan class="pk">id</tspan>  PK</text>
+    <text class="campo" x="12" y="66">name</text>
+    <text class="nota" x="12" y="84">administrador · secretaria · entrenador · tutor</text>
+  </g>
+  <!-- AsignacionEntrenador -->
+  <g transform="translate(20,20)">
+    <rect class="caja" width="230" height="110" rx="6"/>
+    <rect class="cab" width="230" height="28" rx="6"/><rect class="cab" y="20" width="230" height="8"/>
+    <text class="cabtxt" x="12" y="19">AsignacionEntrenador</text>
+    <text class="campo" x="12" y="48"><tspan class="fk">entrenador_id</tspan>  FK → User</text>
+    <text class="campo" x="12" y="66">categoria  (MINI·MENOR·MAYOR)</text>
+    <text class="campo" x="12" y="84">horario  (LUN_MIE·MAR_JUE)</text>
+    <text class="nota" x="12" y="102">única por entrenador y grupo</text>
+  </g>
+  <!-- Dispositivo -->
+  <g transform="translate(20,150)">
+    <rect class="caja" width="230" height="110" rx="6"/>
+    <rect class="cab" width="230" height="28" rx="6"/><rect class="cab" y="20" width="230" height="8"/>
+    <text class="cabtxt" x="12" y="19">Dispositivo</text>
+    <text class="campo" x="12" y="48"><tspan class="fk">usuario_id</tspan>  FK → User</text>
+    <text class="campo" x="12" y="66">token  (Expo, único)</text>
+    <text class="campo" x="12" y="84">registrado</text>
+    <text class="campo" x="12" y="102">actualizado</text>
+  </g>
+  <!-- Tutor -->
+  <g transform="translate(20,330)">
+    <rect class="caja" width="230" height="128" rx="6"/>
+    <rect class="cab" width="230" height="28" rx="6"/><rect class="cab" y="20" width="230" height="8"/>
+    <text class="cabtxt" x="12" y="19">Tutor</text>
+    <text class="campo" x="12" y="48"><tspan class="pk">id</tspan>  PK</text>
+    <text class="campo" x="12" y="66">nombre</text>
+    <text class="campo" x="12" y="84">telefono  (55 1234 5678)</text>
+    <text class="campo" x="12" y="102">correo</text>
+    <text class="campo" x="12" y="120"><tspan class="fk">usuario_id</tspan>  1:1 → User (nulo)</text>
+  </g>
+  <!-- CodigoActivacion -->
+  <g transform="translate(20,510)">
+    <rect class="caja" width="230" height="146" rx="6"/>
+    <rect class="cab" width="230" height="28" rx="6"/><rect class="cab" y="20" width="230" height="8"/>
+    <text class="cabtxt" x="12" y="19">CodigoActivacion</text>
+    <text class="campo" x="12" y="48"><tspan class="fk">tutor_id</tspan>  FK → Tutor</text>
+    <text class="campo" x="12" y="66">codigo  (8 caracteres, único)</text>
+    <text class="campo" x="12" y="84">creado</text>
+    <text class="campo" x="12" y="102">vence  (+7 días)</text>
+    <text class="campo" x="12" y="120">usado  (nulo = vigente)</text>
+    <text class="nota" x="12" y="138">un solo uso; UPDATE condicionado</text>
+  </g>
+  <!-- Alumno -->
+  <g transform="translate(385,330)">
+    <rect class="caja" width="230" height="182" rx="6"/>
+    <rect class="cab" width="230" height="28" rx="6"/><rect class="cab" y="20" width="230" height="8"/>
+    <text class="cabtxt" x="12" y="19">Alumno</text>
+    <text class="campo" x="12" y="48"><tspan class="pk">id</tspan>  PK  → folio VS-0001</text>
+    <text class="campo" x="12" y="66">nombre</text>
+    <text class="campo" x="12" y="84">fecha_nacimiento</text>
+    <text class="campo" x="12" y="102">categoria</text>
+    <text class="campo" x="12" y="120">horario</text>
+    <text class="campo" x="12" y="138">activo  (baja conserva histórico)</text>
+    <text class="campo" x="12" y="156">fecha_alta</text>
+    <text class="campo" x="12" y="174"><tspan class="fk">tutor_id</tspan>  FK → Tutor (PROTECT)</text>
+  </g>
+  <!-- Comunicado -->
+  <g transform="translate(750,130)">
+    <rect class="caja" width="230" height="146" rx="6"/>
+    <rect class="cab" width="230" height="28" rx="6"/><rect class="cab" y="20" width="230" height="8"/>
+    <text class="cabtxt" x="12" y="19">Comunicado</text>
+    <text class="campo" x="12" y="48"><tspan class="pk">id</tspan>  PK</text>
+    <text class="campo" x="12" y="66">titulo</text>
+    <text class="campo" x="12" y="84">cuerpo</text>
+    <text class="campo" x="12" y="102">categoria  (vacía = general)</text>
+    <text class="campo" x="12" y="120">publicado</text>
+    <text class="campo" x="12" y="138"><tspan class="fk">autor_id</tspan>  FK → User</text>
+  </g>
+  <!-- Evaluacion -->
+  <g transform="translate(750,330)">
+    <rect class="caja" width="230" height="236" rx="6"/>
+    <rect class="cab" width="230" height="28" rx="6"/><rect class="cab" y="20" width="230" height="8"/>
+    <text class="cabtxt" x="12" y="19">Evaluacion</text>
+    <text class="campo" x="12" y="48"><tspan class="pk">id</tspan>  PK</text>
+    <text class="campo" x="12" y="66"><tspan class="fk">alumno_id</tspan>  FK → Alumno</text>
+    <text class="campo" x="12" y="84">fecha  (día en la cancha)</text>
+    <text class="campo" x="12" y="102">pase, recepcion, tiro  (1–10)</text>
+    <text class="campo" x="12" y="120">observaciones  (≤ 500)</text>
+    <text class="campo" x="12" y="138"><tspan class="fk">capturada_por_id</tspan>  FK → User</text>
+    <text class="campo" x="12" y="156">creada  (llegó al servidor)</text>
+    <text class="campo" x="12" y="174">client_uuid  (único, del celular)</text>
+    <text class="nota" x="12" y="196">UNIQUE (alumno, fecha)</text>
+    <text class="nota" x="12" y="214">promedio y temporada: calculados</text>
+    <text class="nota" x="12" y="228">en el modelo, no se guardan</text>
+  </g>
+</svg>

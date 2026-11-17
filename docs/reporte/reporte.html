@@ -1,0 +1,487 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<title>Reporte del Proyecto Final · VIVA SOCCER</title>
+<link rel="stylesheet" href="estilos.css">
+</head>
+<body>
+
+<!-- ================================================================ ÍNDICE -->
+<h2 class="titulo-indice">Índice</h2>
+<ul class="indice">
+<!--INDICE-->
+</ul>
+<h2 class="titulo-indice" style="font-size:15pt">Índice de figuras</h2>
+<ul class="indice">
+<!--INDICE_FIGURAS-->
+</ul>
+
+<!-- ================================================================ 1 -->
+<h2 class="seccion" data-indice>1. Título del proyecto</h2>
+<p style="text-align:left"><b>VIVA SOCCER: plataforma en la nube para la evaluación y el seguimiento de los alumnos de una escuela de fútbol infantil.</b></p>
+<p>VIVA SOCCER es una aplicación web, desplegada en la nube, para una escuela de fútbol infantil de Tijuana. Reúne en un solo lugar el padrón de alumnos y sus tutores, la captura de evaluaciones técnicas en la cancha (pase, recepción y tiro, en escala de 1 a 10), el histórico y la progresión de cada niño, y las boletas que se entregan a las familias. Desde octubre expone además una API REST, que consume una aplicación móvil desarrollada por el equipo en otra materia.</p>
+
+<table>
+  <thead><tr><th style="width:32%">Dato</th><th>Valor</th></tr></thead>
+  <tbody>
+    <tr><td>Aplicación en producción</td><td>https://vivasoccer-production.up.railway.app (desde el 16 de noviembre de 2026)</td></tr>
+    <tr><td>Repositorio</td><td>github.com/joseluis-buo/viva_soccer, rama <code>main</code>, {{COMMITS}} commits ({{COMMITS_DESDE}} desde el segundo avance)</td></tr>
+    <tr><td>Pila tecnológica</td><td>Python 3.12, Django 5.2, HTMX 2.0, Tailwind CSS 3.4, Chart.js 4.4, Django REST Framework 3.18 con Simple JWT, PostgreSQL 18 (Neon), gunicorn y WhiteNoise</td></tr>
+    <tr><td>Pruebas</td><td>{{TOTAL_PRUEBAS}} pruebas automatizadas y una prueba de punta a punta con Playwright, en GitHub Actions</td></tr>
+  </tbody>
+</table>
+
+<!-- ================================================================ 2 -->
+<h2 data-indice style="margin-top:1.4em">2. Objetivo general</h2>
+<p>Diseñar, construir, desplegar en la nube y evaluar la interfaz de VIVA SOCCER para que la coordinación (administrador y secretaria) y los entrenadores registren y consulten la evaluación técnica de los alumnos con eficacia, eficiencia y satisfacción medibles, conforme a la definición de usabilidad de la norma ISO 9241-11 (International Organization for Standardization [ISO], 2018), y exponer esa misma información, con los permisos de cada rol, a la aplicación móvil del proyecto.</p>
+<p>El objetivo de la propuesta mencionaba a las familias como usuarias de la interfaz. En la versión final, la consulta de las familias se resolvió del lado del servidor, mediante la API; su interfaz pertenece a la aplicación móvil, que es de otra materia y no se evalúa en este reporte.</p>
+
+<!-- ================================================================ 3 -->
+<h2 class="seccion" data-indice>3. Objetivos específicos</h2>
+<p>Los siete objetivos específicos y sus metas son los de la propuesta (§1.4). La tabla indica su estado real al cierre, con la evidencia que lo respalda. Lo que no se midió se reporta como pendiente, no como cumplido.</p>
+<table>
+  <thead><tr><th style="width:7%">Clave</th><th style="width:30%">Meta medible</th><th style="width:13%">Estado</th><th>Evidencia</th></tr></thead>
+  <tbody>
+    <tr><td>OE1</td><td>Evaluar a un alumno en 20 s o menos en promedio; un grupo de 15 en menos de 6 min.</td><td class="pend">Sin medir</td><td>La captura cumple el diseño (una tarjeta por alumno, tres campos de 56 px, guardado en bloque) y una prueba E2E recorre el flujo, pero el tiempo con usuarios reales no se ha medido (sección 9.4).</td></tr>
+    <tr><td>OE2</td><td>Registrar un alumno en menos de 2 min, sin errores de validación en 80 % de los intentos.</td><td class="pend">Sin medir</td><td>Alta en un modal sobre el padrón, con el tutor nuevo o existente en el mismo formulario. Falta la medición con usuarios.</td></tr>
+    <tr><td>OE3</td><td>Tasa de éxito de 90 % o más en las tareas de las pruebas con usuarios.</td><td class="pend">Sin medir</td><td>Las pruebas con usuarios están planeadas, no realizadas.</td></tr>
+    <tr><td>OE4</td><td>Puntaje SUS promedio de 75 o más.</td><td class="pend">Sin medir</td><td>Cuestionario y cálculo definidos en el plan (sección 9.4).</td></tr>
+    <tr><td>OE5</td><td>Contraste de 4.5:1 en el 100 % de las pantallas; controles táctiles de al menos 44 × 44 px en la captura.</td><td class="ok">Cumplido</td><td>Contrastes de 14.6:1 (texto principal) y 6.4:1 (secundario) documentados en el design system. Campos de 44 px, calificaciones de 56 px y botón de 52 px. Lighthouse: 100 en accesibilidad en las seis mediciones finales.</td></tr>
+    <tr><td>OE6</td><td>Carga inicial menor a 3 s en 4G simulada; confirmación de guardado en menos de 1 s.</td><td class="parcial">Parcial</td><td>Carga inicial: el peor caso medido es 1.8 s (login en móvil, Lighthouse en producción). La confirmación de guardado no se ha cronometrado.</td></tr>
+    <tr><td>OE7</td><td>Cero problemas de severidad 3 o 4 sin resolver en el prototipo final.</td><td class="pend">Sin medir</td><td>Requiere la evaluación heurística y las pruebas con usuarios; ninguna se ha realizado.</td></tr>
+  </tbody>
+</table>
+<p>En resumen: los objetivos que se pueden verificar con herramientas automáticas (OE5 y la carga inicial de OE6) se cumplieron con evidencia; los que dependen de usuarios reales (OE1 a OE4 y OE7) quedan como plan para las sesiones de prueba descritas en la sección 9.4.</p>
+
+<!-- ================================================================ 4 -->
+<h2 data-indice style="margin-top:1.4em">4. Introducción</h2>
+<p>En la escuela, la evaluación técnica ocurre en la cancha, pero se anotaba en libretas y hojas de cálculo; la versión anterior del sistema, una aplicación de escritorio en C# (WinForms), solo vivía en la computadora de la oficina. La información llegaba tarde, a veces incompleta, y las familias recibían poca retroalimentación sobre el avance de sus hijos.</p>
+<p>VIVA SOCCER resuelve ese problema con una aplicación web con una pantalla de inicio por rol. El <b>administrador</b> ve el panel de indicadores de la temporada; la <b>secretaria</b> mantiene el padrón, los tutores, la corrección de evaluaciones y las boletas; el <b>entrenador</b> captura pase, recepción y tiro desde el celular. Un cuarto rol, el <b>tutor</b> (padre o madre), consulta el desempeño de sus hijos desde la aplicación móvil, a través de la API.</p>
+<p>Respecto al segundo avance (14 de octubre de 2026), el alcance creció en tres direcciones: se agregó la API REST con autenticación JWT para la aplicación móvil, junto con los modelos que la sostienen (cuentas de tutor, códigos de activación, dispositivos, comunicados y asignación de grupos a entrenadores); se cerraron los requerimientos pendientes de la web (búsqueda por folio, grupos sin evaluar y exportación a CSV); y se completó el flujo en la nube: base de datos PostgreSQL en Neon con entornos separados, integración continua en GitHub Actions, despliegue en Railway y monitoreo de errores con Sentry.</p>
+<p>Este reporte sigue los dos flujos del proyecto, el de diseño (frontend) y el técnico (backend y nube), y reporta los resultados reales de las pruebas, incluidos los problemas que esas pruebas encontraron y cómo se corrigieron.</p>
+
+<!-- ================================================================ 5 -->
+<h2 class="seccion" data-indice>5. Flujo de desarrollo del frontend</h2>
+
+<h3 data-indice>5.1 Investigación UX</h3>
+<p>La investigación de usuarios se documentó en la propuesta y en el segundo avance; aquí se resume como evidencia del diseño. Se definieron tres proto-personas, una por perfil de uso.</p>
+<table>
+  <thead><tr><th style="width:24%">Persona</th><th style="width:30%">Contexto</th><th>Necesidad</th></tr></thead>
+  <tbody>
+    <tr><td><b>Laura Méndez</b>, 41<br>Coordinadora administrativa</td><td>Escritorio, con interrupciones de padres que llegan a inscribir.</td><td>Padrón al día, indicadores por categoría y teléfonos bien capturados. <i>“Necesito abrir algo y ver cómo vamos, no armar un Excel cada fin de mes.”</i></td></tr>
+    <tr><td><b>Antonio “Toño” Ramírez</b>, 27<br>Entrenador Sub-8 y Sub-10</td><td>Cancha al aire libre, sol directo, prisa y una mano ocupada.</td><td>Ver solo su grupo y calificar rápido con el pulgar, sin perder datos. <i>“Si me toma más de lo que dura un ejercicio, mejor lo apunto en la libreta.”</i></td></tr>
+    <tr><td><b>Claudia Torres</b>, 36<br>Madre de un alumno Sub-10</td><td>Ratos cortos en el celular: transporte o descanso.</td><td>Saber en qué mejora su hijo, sin lenguaje técnico. <i>“Me dicen que va bien, pero quisiera verlo con algo más que un ‘échale ganas’.”</i></td></tr>
+  </tbody>
+</table>
+<p class="tabla-pie">Fuente: Propuesta de Proyecto Final, §2.1. Son proto-personas que se validarían con entrevistas breves.</p>
+
+<p>La arquitectura de la información se organizó por rol: después de iniciar sesión, cada usuario llega directo a su pantalla y solo ve las secciones que le corresponden (Figura 1). La captura, el flujo más crítico porque ocurre en la cancha, se diseñó para llegar al grupo en dos toques y evaluar alumno por alumno sin salir de la lista (Figura 2).</p>
+<figure class="sin-borde">
+  <img src="figuras/mapa_sitio.png" style="width:5.6in">
+  <figcaption>Figura 1. Mapa del sitio por rol, tomado de la propuesta (Figura 1 de la propuesta).</figcaption>
+</figure>
+<figure class="sin-borde">
+  <img src="figuras/flujo_captura.png" style="width:6.1in">
+  <figcaption>Figura 2. Flujo de captura del entrenador con manejo de la conexión, tomado de la propuesta (Figura 2 de la propuesta).</figcaption>
+</figure>
+<p>Al implementar, el mapa cambió en tres puntos: se agregó el rol de secretaria (padrón, tutores, corrección y boletas); el tutor se volvió un registro propio, porque los hermanos comparten tutor; y las pantallas de familia y del entrenador “en el celular” se resolvieron en dos lugares distintos: la captura web es <i>mobile-first</i>, y la aplicación móvil consume la API. La rama sin conexión del flujo (guardar en una cola local) no se implementó en la web; la API la soporta con sincronización idempotente (sección 6.4).</p>
+
+<p>Las diez heurísticas de Nielsen (1994) se tradujeron a criterios propios del proyecto. La tabla compara lo que se planeó revisar con lo que hay en la versión final.</p>
+<table>
+  <thead><tr><th style="width:27%">Heurística</th><th style="width:30%">Criterio de VIVA SOCCER</th><th>En la versión final</th></tr></thead>
+  <tbody>
+    <tr><td>1. Visibilidad del estado</td><td>Confirmación al guardar; indicador de pendientes.</td><td>Mensaje “Se guardaron N evaluaciones”, barra de avance “Capturados N / M” y borde de color en la tarjeta ya capturada.</td></tr>
+    <tr><td>2. Relación con el mundo real</td><td>Vocabulario de la escuela.</td><td>Categorías, horarios, pase, recepción, tiro y folio VS-0000.</td></tr>
+    <tr><td>3. Control y libertad</td><td>Corregir sin salir de la lista.</td><td>Reenviar la captura actualiza en lugar de duplicar; la ficha permite editar y borrar evaluaciones.</td></tr>
+    <tr><td>4. Consistencia</td><td>Mismos componentes en todas las pantallas.</td><td>Tokens únicos en <code>tailwind.config.js</code> y clases de componente compartidas.</td></tr>
+    <tr><td>5. Prevención de errores</td><td>Una evaluación por fecha; teléfono validado.</td><td>Restricción en la base de datos, validación 1–10 y formato <code>55 1234 5678</code>.</td></tr>
+    <tr><td>6. Reconocer antes que recordar</td><td>Folio e iniciales visibles.</td><td>Folio en padrón, ficha y captura; ahora también se busca por folio (RF-03).</td></tr>
+    <tr><td>7. Flexibilidad y eficiencia</td><td>Avance al siguiente pendiente.</td><td class="parcial">Pendiente: se guarda el grupo en bloque; no hay salto automático al siguiente alumno.</td></tr>
+    <tr><td>8. Diseño minimalista</td><td>Solo lo necesario para calificar.</td><td>Tres campos por alumno y una observación opcional.</td></tr>
+    <tr><td>9. Recuperarse de errores</td><td>Mensajes claros.</td><td>Errores por campo, en español.</td></tr>
+    <tr><td>10. Ayuda y documentación</td><td>Indicaciones para las familias.</td><td class="parcial">Fuera de la web: corresponde a la aplicación móvil.</td></tr>
+  </tbody>
+</table>
+<p class="tabla-pie">Fuente: Propuesta (§2) y segundo avance, actualizada con el estado final.</p>
+<div class="nota"><p><b>Trabajo futuro de UX.</b> No se elaboraron el mapa de empatía ni los wireframes de baja fidelidad en Figma que contemplaba el cronograma, y las dos evaluaciones heurísticas formales (sobre wireframes y sobre el prototipo) no se realizaron. La tabla anterior es una revisión del equipo contra los criterios, no una evaluación heurística con severidades.</p></div>
+
+<h3 data-indice>5.2 Design system y tokens</h3>
+<p>El design system vive en <code>design/design.html</code> y se trasladó sin pérdidas a <code>tailwind.config.js</code>, que define una <b>paleta cerrada</b>: solo existen los nueve colores del diseño, no la paleta por defecto de Tailwind. Es regla del proyecto que ninguna plantilla use un color hexadecimal suelto.</p>
+<table>
+  <thead><tr><th style="width:24%">Token</th><th style="width:14%">Valor</th><th>Uso</th></tr></thead>
+  <tbody>
+    <tr><td><code>bg-base</code></td><td>#12081F</td><td>Fondo de la aplicación e inputs sobre superficie.</td></tr>
+    <tr><td><code>bg-surface</code></td><td>#1E1033</td><td>Tarjetas, tablas, modales y barra de navegación.</td></tr>
+    <tr><td><code>border</code></td><td>#2D1B4E</td><td>Bordes, encabezado de tabla y divisores.</td></tr>
+    <tr><td><code>accent</code></td><td>#C6FF00</td><td>Botón primario, cifra clave, fila activa y serie principal (máximo tres usos por pantalla).</td></tr>
+    <tr><td><code>accent-secondary</code></td><td>#7B2FF7</td><td>Filtro activo, avatares y segunda serie de las gráficas.</td></tr>
+    <tr><td><code>text-primary</code> / <code>text-muted</code></td><td>#F5F3FA / #A79FB8</td><td>Texto principal (14.6:1 sobre el fondo) y secundario (6.4:1).</td></tr>
+    <tr><td><code>success</code> / <code>danger</code></td><td>#3DDC91 / #FF4D6D</td><td>Confirmación y deltas positivos; errores y acciones destructivas.</td></tr>
+  </tbody>
+</table>
+<p>La tipografía usa tres familias: Barlow Condensed para títulos, cifras y calificaciones; Barlow para datos y cuerpo; e IBM Plex Mono para folios, fechas y teléfonos. Las alturas táctiles se fijaron en 44 px para campos, 52 px para el botón primario y 56 px para los campos de calificación de la captura. El fondo oscuro con neón se eligió para leer bajo el sol de la cancha. Para las gráficas, <code>static/js/paleta.js</code> replica los mismos tokens, de modo que Chart.js tampoco usa colores sueltos.</p>
+
+<h3 data-indice>5.3 Diseño de alta fidelidad</h3>
+<p>El prototipo de alta fidelidad se construyó directamente en HTML, en <code>design/design.html</code>: identidad, login, panel, padrón, formulario de alumno, captura y ficha, más la especificación de componentes (sección 08 del archivo). Usar HTML en lugar de una herramienta de diseño permitió que lo evaluado en el diseño fuera exactamente lo que después se implementó. Las pantallas de tutores y de la boleta se implementaron sin maqueta previa; llevarlas a <code>design.html</code> queda como trabajo futuro.</p>
+
+<h3 data-indice>5.4 Handoff a Tailwind y HTMX</h3>
+<p>El paso del diseño al código sigue una cadena de tres eslabones: el <b>token</b> se define una vez en <code>tailwind.config.js</code>; las <b>clases de componente</b> en <code>static/src/input.css</code> (<code>.btn-primario</code>, <code>.btn-fantasma</code>, <code>.campo</code>, <code>.chip</code>, <code>.tarjeta</code>, <code>.etiqueta</code>, <code>.nota-input</code>) lo aplican; y las <b>plantillas</b> de Django solo usan esas clases. Cambiar un token actualiza botones, tablas y gráficas a la vez.</p>
+<p>Tailwind se compila con su binario <i>standalone</i> (versión 3.4.17), sin Node ni <code>package.json</code>; el script <code>bin/compilar_css.py</code> lo descarga si falta y compila. La interactividad usa HTMX 2.0, servido desde el propio sitio: el panel lateral del padrón y los modales de alumno, tutor y evaluación se cargan con <code>hx-get</code> sin recargar la página. HTMX y Chart.js se sirven localmente, sin CDN, porque en la cancha la señal es irregular.</p>
+
+<h3 data-indice>5.5 Pantallas finales</h3>
+<p>Las capturas de esta sección se tomaron el 16 de noviembre de 2026 con Playwright, contra un servidor local con una base SQLite temporal y los datos ficticios de <code>seed_demo</code>; nunca contra la base de producción. Las de escritorio se tomaron a 1366 × 768 px y la de la captura a 390 px de ancho, el tamaño de un celular.</p>
+
+<figure>
+  <img src="capturas/login.png" style="width:6.1in">
+  <figcaption>Figura 3. Inicio de sesión. Un solo formulario para todos los roles; después, cada rol llega directo a su pantalla (RF-01).</figcaption>
+</figure>
+<figure>
+  <img src="capturas/panel.png" style="width:5.4in">
+  <figcaption>Figura 4. Panel del administrador: cifras de la temporada, la tarjeta de grupos sin evaluar en los últimos 7 días (RF-07), el promedio por habilidad y categoría, y el mayor progreso reciente.</figcaption>
+</figure>
+<p>En la Figura 4, todos los grupos aparecen como “sin evaluar” porque las evaluaciones de los datos de ejemplo son de abril a septiembre; es el comportamiento esperado de la tarjeta con esos datos.</p>
+<figure>
+  <img src="capturas/padron.png" style="width:6.1in">
+  <figcaption>Figura 5. Padrón filtrado por grupo, con el panel lateral del alumno cargado con HTMX y los botones de exportación a CSV (RF-10).</figcaption>
+</figure>
+<figure>
+  <img src="capturas/padron_folio.png" style="width:6.1in">
+  <figcaption>Figura 6. Búsqueda en el padrón por folio (RF-03): “VS-0003” encuentra al alumno aunque se escriba como VS-0003, 0003 o 3.</figcaption>
+</figure>
+<figure>
+  <img src="capturas/ficha.png" style="width:6.1in">
+  <figcaption>Figura 7. Ficha del alumno: promedio actual contra el de su categoría, gráfica de progresión, histórico de evaluaciones con observaciones y acciones de oficina.</figcaption>
+</figure>
+<div class="par">
+  <figure>
+    <img src="capturas/captura_movil.png" style="width:2.45in">
+    <figcaption>Figura 8. Captura de calificaciones a 390 px, después de guardar: etiquetas de grupo y fecha, barra de avance y tarjeta capturada.</figcaption>
+  </figure>
+  <div style="flex:1.25; padding-top:0.1in">
+    <p>La captura es la pantalla más usada y la única que se diseñó primero para el celular. Cada alumno tiene una tarjeta con tres campos numéricos de 56 px, más grandes que el mínimo de 44 px para el pulgar, y un campo opcional de observaciones de hasta 500 caracteres. El botón de guardado queda fijo abajo y guarda el grupo completo en una sola operación.</p>
+    <p>El selector de grupo y la fecha recargan la lista al cambiar. Reenviar la captura de una fecha ya capturada actualiza la evaluación en lugar de duplicarla, porque la base de datos solo admite una evaluación por alumno y fecha.</p>
+    <p>Después de la medición con Lighthouse se agregaron las etiquetas visibles “Grupo” y “Fecha” y se corrigió el ícono del calendario, que no se veía sobre el fondo oscuro (sección 5.6).</p>
+  </div>
+</div>
+<figure>
+  <img src="capturas/tutores.png" style="width:6.1in">
+  <figcaption>Figura 9. Tutores: alta, edición y búsqueda por tutor, teléfono o alumno. Un tutor con alumnos no se puede eliminar.</figcaption>
+</figure>
+<figure>
+  <img src="capturas/boleta.png" style="width:5.6in">
+  <figcaption>Figura 10. Boleta individual lista para imprimir. Invierte la paleta (tinta oscura sobre papel) para no gastar tóner; también se imprime por grupo, una hoja por alumno.</figcaption>
+</figure>
+
+<h3 data-indice>5.6 Correcciones de accesibilidad</h3>
+<p>La primera medición con Lighthouse en producción (sección 9.3) dio 80 en accesibilidad en la captura y 96 en el login. Antes de corregir se identificó la causa exacta de cada punto:</p>
+<table>
+  <thead><tr><th style="width:28%">Hallazgo de Lighthouse</th><th style="width:33%">Efecto para el usuario</th><th>Corrección</th></tr></thead>
+  <tbody>
+    <tr><td>Captura: el selector de grupo y la fecha no tienen etiqueta (<code>label</code>, <code>select-name</code>).</td><td>Un lector de pantalla los anuncia como “cuadro combinado” y “fecha”, sin decir para qué son.</td><td>Etiquetas visibles “Grupo” y “Fecha” que envuelven al control, con la clase <code>.etiqueta</code> del design system.</td></tr>
+    <tr><td>Login: la página no tiene región <code>&lt;main&gt;</code>.</td><td>Quien navega por regiones no puede saltar directo al contenido.</td><td>El contenedor del login pasó de <code>&lt;section&gt;</code> a <code>&lt;main&gt;</code>.</td></tr>
+    <tr><td>Todas: falta <code>meta description</code> (SEO 90).</td><td>Sin descripción en buscadores y al compartir el enlace.</td><td>Descripción en un parcial común a las tres plantillas con <code>&lt;head&gt;</code> propio.</td></tr>
+    <tr><td>Login móvil: error en consola por <code>/favicon.ico</code> (404).</td><td>Error visible para quien depura; ícono genérico en la pestaña.</td><td>Favicon SVG “VS” con los tokens <code>accent</code> y <code>bg-base</code>; una prueba verifica que solo use colores de los tokens.</td></tr>
+    <tr><td>Revisión visual del equipo (no la marcó Lighthouse).</td><td>El ícono del calendario salía negro sobre el fondo oscuro.</td><td><code>color-scheme: dark</code> en el campo de fecha.</td></tr>
+  </tbody>
+</table>
+<p>Las cuatro correcciones verificables tienen una prueba automatizada (<code>AccesibilidadTests</code>), y la segunda medición en producción dio 100 en accesibilidad, buenas prácticas y SEO en las seis combinaciones de página y dispositivo.</p>
+
+<!-- ================================================================ 6 -->
+<h2 class="seccion" data-indice>6. Flujo de desarrollo del backend</h2>
+
+<h3 data-indice>6.1 Django y estructura del proyecto</h3>
+<p>El backend usa Django 5.2.17 sobre Python 3.12. El proyecto se divide en tres paquetes: <code>escuela</code> (modelos, vistas web con HTMX, roles, administración y exportación a CSV), <code>api</code> (la API REST para la aplicación móvil) y <code>vivasoccer</code> (configuración, integración con Sentry y sus pruebas). La web conserva las sesiones de Django; la API usa JWT. Las dos comparten los mismos modelos y las mismas reglas de permisos, de modo que la API se agregó al lado de la web, sin reemplazarla.</p>
+<p>Todo el código, los modelos, los campos y la interfaz están en español, y la configuración sensible (cadena de la base de datos, llave secreta, hosts permitidos) se lee de variables de entorno. Con <code>DEBUG</code> apagado, si falta alguna, la aplicación se detiene con un mensaje que dice cuál.</p>
+
+<h3 data-indice>6.2 Modelos</h3>
+<p>Los modelos son la única fuente de verdad: el folio, el promedio y la temporada se calculan en el modelo, nunca en el cliente. La Figura 11 (sección 7) muestra sus relaciones.</p>
+<table>
+  <thead><tr><th style="width:23%">Modelo</th><th>Qué representa y reglas principales</th></tr></thead>
+  <tbody>
+    <tr><td><code>Tutor</code></td><td>Padre, madre o responsable; teléfono con formato <code>55 1234 5678</code>. Un tutor puede tener varios hijos. Su campo <code>usuario</code> (uno a uno, opcional) es la cuenta con la que entra a la app móvil.</td></tr>
+    <tr><td><code>Alumno</code></td><td>Menor de edad con categoría (MINI, MENOR, MAYOR), horario (lunes y miércoles o martes y jueves) y tutor. El folio <code>VS-0001</code> se deriva del id. La baja lo desactiva y conserva su histórico; un tutor con alumnos no se puede borrar (<code>PROTECT</code>).</td></tr>
+    <tr><td><code>Evaluacion</code></td><td>Pase, recepción y tiro de 1 a 10, observaciones (hasta 500 caracteres) y quién la capturó. <b>Una sola por alumno y fecha</b>, como restricción de la base de datos. <code>fecha</code> es el día en la cancha y <code>creada</code> cuándo llegó al servidor; <code>client_uuid</code> lo genera el celular para que reenviar no duplique.</td></tr>
+    <tr><td><code>AsignacionEntrenador</code></td><td>Liga a un entrenador con un grupo (categoría + horario); única por entrenador y grupo. Define qué alumnos ve en la API.</td></tr>
+    <tr><td><code>CodigoActivacion</code></td><td>Código de 8 caracteres, de un solo uso, que la escuela entrega al tutor para crear su contraseña. Sin caracteres confundibles (0/O, 1/I/L) y con vigencia de 7 días.</td></tr>
+    <tr><td><code>Dispositivo</code></td><td>Token de notificaciones push de Expo, único; si otro usuario inicia sesión en el mismo celular, se le reasigna.</td></tr>
+    <tr><td><code>Comunicado</code></td><td>Aviso de la escuela, general o dirigido a una categoría, con fecha de publicación.</td></tr>
+  </tbody>
+</table>
+
+<h3 data-indice>6.3 Roles y permisos</h3>
+<p>Los cuatro roles son grupos de Django, definidos en <code>escuela/roles.py</code>, cada uno con su función <code>es_&lt;rol&gt;</code> y su decorador <code>solo_&lt;rol&gt;</code>.</p>
+<table>
+  <thead><tr><th style="width:17%">Rol</th><th style="width:43%">Qué puede hacer</th><th>Dónde</th></tr></thead>
+  <tbody>
+    <tr><td>Administrador</td><td>Todo. Cuenta también como secretaria y entrenador, y ve los seis grupos sin necesidad de asignaciones.</td><td>Web y admin de Django.</td></tr>
+    <tr><td>Secretaria</td><td>Padrón (alta, edición, baja y reactivación), tutores, corrección y borrado de evaluaciones, boletas, CSV, y en el admin los códigos de activación y los comunicados. No entra al panel ni a la captura.</td><td>Web y admin de Django.</td></tr>
+    <tr><td>Entrenador</td><td>Captura de evaluaciones. En la API solo ve los alumnos activos que hoy están en sus grupos asignados.</td><td>Web (captura) y API.</td></tr>
+    <tr><td>Tutor</td><td>Consulta de sus hijos (incluidos los dados de baja), su histórico y los comunicados que le tocan. El administrador no hereda este rol: ser tutor es ser el padre de alumnos concretos, no un permiso.</td><td>Solo API.</td></tr>
+  </tbody>
+</table>
+<p>Los permisos se resuelven en el servidor, nunca en el cliente. Dos funciones son la única regla de visibilidad de la API: <code>alumnos_del_entrenador(user)</code> y <code>alumnos_del_tutor(user)</code>. Lo que queda fuera responde 404, de modo que un usuario no puede ni siquiera confirmar que un alumno ajeno existe. En la web, un usuario con sesión que entra a una pantalla de otro rol vuelve a su propia pantalla, y uno sin rol recibe 403.</p>
+
+<h3 data-indice>6.4 API REST con JWT</h3>
+<p>La API vive bajo <code>/api/v1/</code>, responde JSON y reporta los errores como <code>{"detail": "..."}</code> con el código HTTP correcto, formato del que depende la aplicación móvil. Usa Django REST Framework 3.18 y Simple JWT: el token de acceso dura 15 minutos y el de renovación 30 días; al renovarse, el anterior se invalida (rotación con lista negra). El login y la activación tienen un límite de 10 intentos por minuto.</p>
+<table>
+  <thead><tr><th style="width:44%">Endpoint</th><th>Uso</th></tr></thead>
+  <tbody>
+    <tr><td><code>POST /token/</code>, <code>POST /token/refresh/</code></td><td>Inicio de sesión y renovación del token.</td></tr>
+    <tr><td><code>POST /activar/</code></td><td>El tutor canjea su código y crea su contraseña.</td></tr>
+    <tr><td><code>GET /mis-grupos/</code></td><td>Grupos del entrenador.</td></tr>
+    <tr><td><code>GET /alumnos/?grupo=</code></td><td>Alumnos del grupo, con marca de si ya se evaluaron hoy.</td></tr>
+    <tr><td><code>POST /evaluaciones/</code></td><td>Captura. Idempotente por <code>client_uuid</code>; una segunda evaluación del mismo alumno y fecha responde 409.</td></tr>
+    <tr><td><code>PATCH /evaluaciones/&lt;id&gt;/</code></td><td>Corrección, solo el mismo día.</td></tr>
+    <tr><td><code>GET /alumnos/&lt;id&gt;/evaluaciones/</code></td><td>Histórico y progresión (entrenador o tutor).</td></tr>
+    <tr><td><code>GET /mis-hijos/</code></td><td>Hijos del tutor autenticado.</td></tr>
+    <tr><td><code>GET /comunicados/</code></td><td>Comunicados generales y de las categorías de sus hijos activos.</td></tr>
+    <tr><td><code>POST /dispositivos/</code></td><td>Registro del token de notificaciones de Expo.</td></tr>
+  </tbody>
+</table>
+<p>La cuenta de un tutor no se registra sola, porque se trata de información de menores: la secretaria genera un código desde el admin y el padre lo canjea. El canje ocurre en una sola transacción y gasta el código con un <code>UPDATE</code> condicionado a que no se haya usado ni vencido; si dos peticiones llegan a la vez, solo una gana. Si algo falla, se revierte todo y el código sigue vigente.</p>
+<p>La captura sin conexión (RF-06) se apoya en dos decisiones del servidor: el <code>client_uuid</code> hace que reenviar la misma evaluación no la duplique, y la <code>fecha</code> puede ser de hasta 7 días atrás, para sincronizar lo capturado en la cancha. La cola local pertenece a la aplicación móvil.</p>
+
+<h3 data-indice>6.5 Validaciones</h3>
+<ul>
+  <li><b>Calificaciones</b>: enteros de 1 a 10 en el modelo, en el formulario web y en la API; la captura web ignora la fila de un alumno si falta alguna de las tres o se sale del rango.</li>
+  <li><b>Una evaluación por alumno y fecha</b>: <code>UniqueConstraint</code> en la base de datos; la web actualiza la existente y la API responde 409.</li>
+  <li><b>Teléfono</b>: formato <code>55 1234 5678</code> con expresión regular.</li>
+  <li><b>Observaciones</b>: hasta 500 caracteres, iguales en la web y en la API.</li>
+  <li><b>Corrección en la API</b>: solo el mismo día y solo de alumnos visibles para el entrenador.</li>
+  <li><b>Configuración</b>: con <code>DEBUG</code> apagado, faltar <code>DATABASE_URL</code>, <code>DJANGO_SECRET_KEY</code> o <code>DJANGO_ALLOWED_HOSTS</code> detiene la aplicación con un mensaje claro.</li>
+</ul>
+
+<h3 data-indice>6.6 Requerimientos cerrados después del avance</h3>
+<h4>RF-03: búsqueda por folio</h4>
+<p>El buscador del padrón encuentra un folio escrito como <code>VS-0010</code>, <code>vs0010</code>, <code>0010</code> o <code>10</code>, además de por alumno o tutor, y respeta el filtro de grupo. La regla para leer un folio vive en el modelo (<code>Alumno.id_de_folio</code>), junto a la que lo genera; un número de teléfono de 10 dígitos no se confunde con un folio.</p>
+<h4>RF-07: grupos sin evaluar</h4>
+<p>El panel muestra los grupos con alumnos activos que no tienen evaluaciones en los últimos 7 días, contando el día de hoy, con la fecha de la última evaluación o “Nunca evaluado” y un enlace a su captura. Se calcula con una sola consulta agrupada; los grupos sin alumnos activos no aparecen, porque no hay a quién evaluar.</p>
+<h4>RF-10: exportación a CSV</h4>
+<p>Tres descargas, solo para administrador y secretaria: el padrón con la misma búsqueda y grupo que se ven en pantalla (incluidas las bajas), las evaluaciones de un grupo y el histórico de un alumno, aunque esté dado de baja. Los archivos van en UTF-8 con BOM, para que Excel abra bien los acentos. Como los nombres y las observaciones los escribe la gente, una celda que empieza con <code>=</code>, <code>+</code>, <code>-</code> o <code>@</code> se guarda con un apóstrofo delante para que Excel no la ejecute como fórmula (OWASP Foundation, s. f.). Las boletas imprimibles cubren la parte de reportes en PDF.</p>
+
+<h3 data-indice>6.7 Estado de los requerimientos funcionales</h3>
+<table>
+  <thead><tr><th style="width:9%">ID</th><th style="width:33%">Requerimiento</th><th style="width:15%">Estado</th><th>Notas</th></tr></thead>
+  <tbody>
+    <tr><td>RF-01</td><td>Inicio de sesión y redirección por rol</td><td class="ok">Completo</td><td>Web con sesión; API con JWT.</td></tr>
+    <tr><td>RF-02</td><td>Alta y edición de alumnos con tutor y folio</td><td class="ok">Completo</td><td>Incluye baja y reactivación conservando el histórico.</td></tr>
+    <tr><td>RF-03</td><td>Padrón con búsqueda y filtros</td><td class="ok">Completo</td><td>Búsqueda por folio agregada el 16 de noviembre.</td></tr>
+    <tr><td>RF-04</td><td>Captura de pase, recepción y tiro</td><td class="ok">Completo</td><td>Web <i>mobile-first</i> y API.</td></tr>
+    <tr><td>RF-05</td><td>Una evaluación por alumno y fecha</td><td class="ok">Completo</td><td>Restricción de base de datos; 409 en la API.</td></tr>
+    <tr><td>RF-06</td><td>Captura sin conexión</td><td class="parcial">Del lado de la API</td><td>Sincronización idempotente con <code>client_uuid</code>; la web no tiene modo sin conexión.</td></tr>
+    <tr><td>RF-07</td><td>Indicadores del panel</td><td class="ok">Completo</td><td>Grupos sin evaluar agregados el 16 de noviembre.</td></tr>
+    <tr><td>RF-08</td><td>Ficha con historial y gráfica</td><td class="ok">Completo</td><td>Con comparación contra el promedio de la categoría.</td></tr>
+    <tr><td>RF-09</td><td>Portal para familias</td><td class="parcial">Del lado de la API</td><td>Hijos, histórico, comunicados y activación de cuentas; la interfaz es la app móvil.</td></tr>
+    <tr><td>RF-10</td><td>Reportes PDF y CSV</td><td class="ok">Completo</td><td>Boletas imprimibles y tres CSV. El filtro por temporada no se implementó.</td></tr>
+    <tr><td>RF-11</td><td>Gestión de cuentas</td><td class="parcial">Parcial</td><td>Desde el admin de Django (códigos, asignaciones); sin interfaz propia.</td></tr>
+  </tbody>
+</table>
+<p>Todos los requerimientos con prioridad <i>Must</i> de la propuesta (RF-01 a RF-05, RF-07 y RF-08) están completos en la web; de los <i>Should</i>, RF-10 está completo y RF-06 y RF-09 se resolvieron del lado de la API.</p>
+
+<!-- ================================================================ 7 -->
+<h2 class="seccion" data-indice>7. Base de datos y arquitectura</h2>
+<p>En producción y en desarrollo la base es PostgreSQL 18, administrado por Neon; las pruebas usan SQLite en memoria (o PostgreSQL de servicio en el CI). El esquema se maneja con las migraciones de Django (de la 0001 a la 0010); las migraciones de datos crean los grupos de cada rol y sus permisos.</p>
+<p>El diagrama entidad-relación (Figura 11) refleja tres decisiones del modelo. La relación entre alumno y tutor es una sola llave foránea, así que cada alumno tiene un solo tutor con acceso a la aplicación. La cuenta del tutor es opcional y, si se borra el usuario, el tutor y sus hijos se conservan. Y la evaluación guarda tanto la fecha en la cancha como la fecha de llegada al servidor, porque con la captura sin conexión pueden ser días distintos.</p>
+<p>En la arquitectura (Figura 12), la aplicación web y la API corren en un solo servicio de Railway: gunicorn sirve Django, y WhiteNoise sirve los archivos estáticos comprimidos y con un hash en el nombre, de modo que el navegador los guarda en caché sin riesgo de quedarse con una versión vieja. Railway no tiene base propia: la web y la aplicación móvil comparten la rama <code>production</code> de Neon.</p>
+<div class="horizontal">
+<figure class="sin-borde">
+  <img src="diagramas/er.svg" style="width:8.6in">
+  <figcaption>Figura 11. Diagrama entidad-relación de los modelos de <code>escuela/models.py</code> y de las tablas de usuarios y grupos de Django. En fondo claro, las tablas de Django.</figcaption>
+</figure>
+</div>
+
+<div class="horizontal">
+<figure class="sin-borde">
+  <img src="diagramas/arquitectura.svg" style="width:9.1in">
+  <figcaption>Figura 12. Arquitectura en la nube al 16 de noviembre de 2026: GitHub y GitHub Actions, Railway, las dos ramas de Neon, Sentry y los dos tipos de cliente.</figcaption>
+</figure>
+</div>
+
+
+<!-- ================================================================ 8 -->
+<h2 class="seccion" data-indice>8. Flujo en la nube</h2>
+
+<h3 data-indice>8.1 Repositorio en GitHub</h3>
+<p>El repositorio tiene {{COMMITS}} commits en la rama <code>main</code>, {{COMMITS_DESDE}} de ellos posteriores al segundo avance. La regla del proyecto es que cada cambio de comportamiento llegue con su prueba; en el cierre, además, cada commit se revisó (diff y mensaje) antes de hacerse.</p>
+<table>
+  <thead><tr><th style="width:20%">Fecha</th><th>Cambios</th></tr></thead>
+  <tbody>
+    <tr><td>8 sep 2026</td><td>Primera entrega: modelos, roles administrador y entrenador, captura, panel y ficha.</td></tr>
+    <tr><td>29 sep 2026</td><td>Configuración por variables de entorno, WhiteNoise y llave secreta obligatoria en producción.</td></tr>
+    <tr><td>14 oct 2026</td><td>Rol de secretaria: tutores, bajas, corrección de evaluaciones y boletas (segundo avance).</td></tr>
+    <tr><td>22 oct 2026</td><td>PostgreSQL en Neon; modelos para la app móvil; API del entrenador y del tutor; observaciones y comunicados; configuración para Railway.</td></tr>
+    <tr><td>9 y 11 nov 2026</td><td>Eliminación de consultas N+1 en boletas y panel; CORS para la app móvil.</td></tr>
+    <tr><td>16 nov 2026</td><td>Corrección de la configuración insegura; <code>seed_demo</code> protegido; CI; ramas de Neon; RF-03, RF-07 y RF-10; E2E; Sentry; despliegue en Railway; Lighthouse y accesibilidad; aislamiento de las pruebas; configuración de Railway en el panel.</td></tr>
+  </tbody>
+</table>
+
+<h3 data-indice>8.2 Integración continua</h3>
+<p>El archivo <code>.github/workflows/ci.yml</code> corre en cada push y cada pull request a <code>main</code>, con dos trabajos independientes:</p>
+<ul>
+  <li><b>pruebas</b>: <code>manage.py check</code>, <code>makemigrations --check</code> (falla si un cambio de modelo no tiene su migración), las pruebas contra un PostgreSQL 18 de servicio (la misma versión que Neon) y la compilación de Tailwind.</li>
+  <li><b>e2e</b>: la prueba de punta a punta con Playwright y Chromium, con su propia base SQLite (sección 9.2).</li>
+</ul>
+<p>El CI está en verde desde el último push. Antes estuvo en rojo en dos pushes, por una prueba que solo pasaba en las máquinas del equipo (hallazgo 5 de la sección 8.6).</p>
+
+<h3 data-indice>8.3 Neon: entornos separados</h3>
+<p>La base es un proyecto de Neon con dos ramas. Una rama de Neon es una copia independiente de la base, con su propio host y sus propias credenciales (Neon, s. f.).</p>
+<table>
+  <thead><tr><th style="width:20%">Entorno</th><th style="width:28%">Dónde corre</th><th>Base</th></tr></thead>
+  <tbody>
+    <tr><td>Producción</td><td>Railway</td><td>Rama <code>production</code>. Solo Railway tiene su URL.</td></tr>
+    <tr><td>Desarrollo</td><td>Laptops del equipo</td><td>Rama <code>desarrollo</code>, creada con solo el esquema y llenada con <code>seed_demo</code>.</td></tr>
+    <tr><td>Pruebas</td><td><code>manage.py test</code></td><td>SQLite en memoria, también en los procesos hijos; con <code>TEST_POSTGRES=1</code>, PostgreSQL.</td></tr>
+    <tr><td>CI</td><td>GitHub Actions</td><td>PostgreSQL 18 desechable y, para la E2E, SQLite temporal.</td></tr>
+  </tbody>
+</table>
+<p>La rama de desarrollo se creó con <i>solo el esquema</i> para no copiar a las laptops los datos ni los hashes de contraseñas de producción. Una rama así trae las tablas pero no el registro de migraciones aplicadas, de modo que <code>migrate</code> habría fallado; por eso, con la rama recién creada y vacía, se borraron sus tablas y se reconstruyó con <code>migrate</code>, que además crea los grupos y permisos de las migraciones de datos.</p>
+
+<h3 data-indice>8.4 Despliegue en Railway</h3>
+<p>La aplicación se desplegó el 16 de noviembre de 2026 en <code>vivasoccer-production.up.railway.app</code>, desde la web de Railway y conectada al repositorio. En cada push a <code>main</code>, Railway construye (instala dependencias, compila Tailwind y corre <code>collectstatic</code>), migra la base antes de publicar (si una migración falla, la versión anterior sigue en línea) y arranca gunicorn.</p>
+<p>Railway retiró su configuración como código: <code>railway.json</code> deja de leerse el 1 de diciembre de 2026 (Railway, s. f.-a). Su reemplazo, <i>Infrastructure as Code</i>, requiere Node o un SDK de Python en beta (Railway, s. f.-b). Para no meter dependencias diez días antes de la entrega, la configuración se pasó al panel del servicio y se documentó campo por campo en el README; <code>railway.json</code> se borró después de confirmar que el despliegue seguía funcionando.</p>
+<table>
+  <thead><tr><th style="width:26%">Campo del panel</th><th>Valor</th></tr></thead>
+  <tbody>
+    <tr><td>Builder</td><td>Railpack</td></tr>
+    <tr><td>Build</td><td><code>python bin/compilar_css.py &amp;&amp; python manage.py collectstatic --noinput</code></td></tr>
+    <tr><td>Pre-deploy</td><td><code>python manage.py migrate --noinput</code></td></tr>
+    <tr><td>Inicio</td><td><code>gunicorn vivasoccer.wsgi --workers 2 --access-logfile -</code></td></tr>
+    <tr><td>Reinicio</td><td>On Failure, máximo 3 reintentos</td></tr>
+  </tbody>
+</table>
+<p>Las variables de entorno del servicio son <code>DATABASE_URL</code> (rama <code>production</code>), <code>DJANGO_SECRET_KEY</code>, <code>DJANGO_ALLOWED_HOSTS</code>, <code>DJANGO_CSRF_TRUSTED</code> y <code>SENTRY_DSN</code>. Ningún valor está en el repositorio. Railway define además <code>RAILWAY_ENVIRONMENT_NAME</code>, con la que la aplicación reconoce que está en producción y apaga <code>DEBUG</code> aunque alguien intente encenderlo: con <code>DEBUG</code>, las páginas de error mostrarían datos de los alumnos.</p>
+
+<h3 data-indice>8.5 Sentry con minimización de datos</h3>
+<p>Sentry recibe los errores de producción, pero los alumnos son menores de edad, así que la integración se configuró para enviar lo mínimo (Sentry, s. f.). Se activa solo si existe <code>SENTRY_DSN</code>; en desarrollo, pruebas y CI no se envía nada.</p>
+<ul>
+  <li><code>send_default_pii=False</code>: sin IP, cookies ni identidad del usuario.</li>
+  <li><code>include_local_variables=False</code>: las variables de una función pueden contener un alumno completo.</li>
+  <li><code>max_request_body_size="never"</code>: el cuerpo de un formulario lleva nombres, teléfonos y observaciones.</li>
+  <li>Un <code>before_send</code> propio quita el <i>query string</i> (la búsqueda del padrón lleva nombres), los encabezados, las cookies y los datos del usuario.</li>
+  <li><code>traces_sample_rate=0</code>: solo errores, sin monitoreo de rendimiento.</li>
+</ul>
+<p>Una prueba provoca un error real a través de la aplicación WSGI, la misma que usa gunicorn, con el nombre de un alumno en la URL, el cuerpo y un encabezado, un teléfono en una variable local, una contraseña, una cookie y una IP, y verifica que ninguno llegue al evento. Con la configuración por defecto de Sentry, esa misma prueba encontraba el nombre, el teléfono, la contraseña y la IP. <b>La verificación manual en producción, enviando un error desde el contenedor con <code>railway ssh</code>, está pendiente.</b></p>
+
+<h3 data-indice>8.6 Hallazgos y correcciones</h3>
+<p>Las pruebas y las revisiones del 16 de noviembre encontraron siete problemas reales. Se reportan con su causa y su corrección porque son parte del resultado del proyecto.</p>
+
+<div class="hallazgo">
+  <h4>1. Configuración de red local activa en producción</h4>
+  <p><b>Qué pasó.</b> Un commit agregó al final de <code>settings.py</code> un bloque, sin condición de <code>DEBUG</code>, que permitía los hosts <code>localhost</code>, <code>127.0.0.1</code> y la IP de la red de casa de un compañero, y CORS para cualquier origen <code>192.168.*</code>, también en producción.</p>
+  <p><b>Cómo se detectó.</b> Dos pruebas de <code>ConfiguracionProduccionTests</code>, que importan la configuración simulando el entorno de Railway, fallaron. No había CI, así que el commit no se detuvo.</p>
+  <p><b>Corrección.</b> El bloque pasó al <code>if DEBUG</code> que ya existía, con dos pruebas nuevas; el commit nunca llegó a producción. El CI se creó en parte por este caso.</p>
+</div>
+<div class="hallazgo">
+  <h4>2. Cuentas demo con contraseñas conocidas en la base compartida</h4>
+  <p><b>Qué pasó.</b> Todo el equipo usaba la misma base de Neon, y el comando de datos de ejemplo <code>seed_demo</code> la había llenado. Una consulta de solo lectura confirmó que <code>admin</code> (único superusuario), <code>secretaria</code>, <code>entrenador</code> y la cuenta de tutor demo existían, estaban activas y seguían con sus contraseñas de ejemplo.</p>
+  <p><b>Corrección.</b> Se cambiaron las contraseñas en esa base; <code>seed_demo</code> ahora se niega a correr con <code>DEBUG</code> apagado, con mensaje y código de salida de error, y tiene dos pruebas. La causa de fondo era la base compartida, que se resolvió con el hallazgo 3.</p>
+</div>
+<div class="hallazgo">
+  <h4>3. Un solo entorno para todo</h4>
+  <p><b>Qué pasó.</b> <code>DEBUG</code> describe el proceso, no la base: un <code>seed_demo</code> corrido desde una laptop con <code>DEBUG</code> encendido escribía en la base que después sería de producción.</p>
+  <p><b>Corrección.</b> Se separaron las ramas <code>production</code> y <code>desarrollo</code> de Neon (sección 8.3); <code>.env.example</code> dejó de traer el host de producción y el README documenta qué base usa cada entorno.</p>
+</div>
+<div class="hallazgo">
+  <h4>4. Contraseñas de base de datos compartidas y expuestas</h4>
+  <p><b>Qué pasó.</b> Mientras la base fue compartida, todos los que desarrollan conocían la contraseña de la base de producción. Más tarde, la de desarrollo quedó expuesta dos veces: parcialmente, en el mensaje de error de una prueba que imprimió la cadena de conexión, y completa, en un mensaje que no era privado.</p>
+  <p><b>Corrección.</b> La contraseña de <code>production</code> se rotó antes de dársela a Railway, y la de <code>desarrollo</code> se rotó las dos veces. Las rotaciones se hicieron con la CLI de Neon, escribiendo la contraseña directo a su destino, sin mostrarla, y se verificó que la anterior ya no entrara y que la otra rama no cambiara. La prueba que imprimió la cadena se reescribió para que no pueda volver a hacerlo.</p>
+</div>
+<div class="hallazgo">
+  <h4>5. Una prueba que se conectaba a Neon y el CI en rojo</h4>
+  <p><b>Qué pasó.</b> La prueba de Sentry corre en un proceso aparte. En las laptops, ese proceso leía el <code>.env</code> y consultaba la rama de desarrollo de Neon, así que pasaba; en el CI, sin <code>.env</code>, fallaba. El CI estuvo en rojo en dos pushes y Railway desplegó de todos modos.</p>
+  <p><b>Corrección.</b> En modo prueba, la configuración exporta <code>DATABASE_URL=sqlite://:memory:</code>, que heredan los procesos hijos y que <code>load_dotenv</code> no sobrescribe; dos pruebas lo verifican. La recomendación para el futuro es activar en Railway la espera al CI antes de desplegar.</p>
+</div>
+<div class="hallazgo">
+  <h4>6. Un despliegue que se daba por hecho</h4>
+  <p><b>Qué pasó.</b> El repositorio tenía <code>railway.json</code> y el README describía el despliegue, pero no existía ningún proyecto en Railway. El estado se había deducido de los archivos de configuración, sin comprobarlo con una petición real.</p>
+  <p><b>Corrección.</b> Se desplegó el 16 de noviembre y, desde entonces, el estado de producción solo se reporta después de verificarlo contra el dominio.</p>
+</div>
+<div class="hallazgo">
+  <h4>7. Configuración de Railway en retiro</h4>
+  <p><b>Qué pasó.</b> Railway anunció que <code>railway.json</code> deja de leerse el 1 de diciembre de 2026.</p>
+  <p><b>Corrección.</b> La configuración se pasó al panel y se documentó en el README (sección 8.4), y el archivo se borró después de confirmar el despliegue.</p>
+</div>
+
+<!-- ================================================================ 9 -->
+<h2 class="seccion" data-indice>9. Pruebas y resultados</h2>
+
+<h3 data-indice>9.1 Pruebas automatizadas</h3>
+<p>El proyecto tiene <b>{{TOTAL_PRUEBAS}} pruebas automatizadas</b> (34 en el segundo avance), que pasan con <code>python manage.py test</code> en SQLite y en el CI contra PostgreSQL 18. La tabla las agrupa por lo que verifican; los números se calculan del código fuente al generar este reporte.</p>
+<table>
+  <thead><tr><th>Grupo de pruebas</th><th class="num" style="width:16%">Pruebas</th></tr></thead>
+  <tbody>
+<!--TABLA_PRUEBAS-->
+  </tbody>
+</table>
+<p>Las de la API incluyen el aislamiento entre grupos y entre familias: un entrenador o un tutor que pide un alumno ajeno recibe 404, tanto en la consulta como en la captura y la corrección. Las de rendimiento verifican que las boletas de un grupo y el panel no hagan una consulta por alumno.</p>
+
+<h3 data-indice>9.2 Prueba de punta a punta con Playwright</h3>
+<p><code>e2e/test_captura.py</code> maneja un navegador Chromium real con pantalla de celular (390 × 844 px): el entrenador inicia sesión, cae en la captura con la fecha de hoy, califica pase 8, recepción 7 y tiro 9 a un alumno con una observación, y guarda. La prueba verifica el mensaje de confirmación, que la tarjeta conserve los valores tras recargar y, leyendo directamente la base, que la evaluación exista con esos valores y con el entrenador como autor.</p>
+<p>La prueba levanta su propio servidor con una base SQLite temporal y <code>seed_demo</code>, y se niega a empezar si Django no está usando SQLite; nunca toca Neon. No forma parte de <code>manage.py test</code>, para que nadie necesite un navegador para la suite normal, y en el CI corre como trabajo aparte.</p>
+
+<h3 data-indice>9.3 Lighthouse en producción</h3>
+<p>Se midieron login, panel y captura, en móvil y en escritorio, contra producción con Lighthouse 13.6.0 (Google, s. f.), antes y después de las correcciones de la sección 5.6. Para medir las páginas con sesión, se inició sesión en el mismo navegador que usa Lighthouse, sin pasar la cookie como encabezado (que la habría enviado también a los servidores de fuentes), y la sesión se cerró al terminar. Los reportes completos están en <code>docs/lighthouse/antes/</code> y <code>docs/lighthouse/despues/</code>.</p>
+<table>
+  <thead><tr><th>Página</th><th>Formato</th><th class="num">Rendimiento</th><th class="num">Accesib.</th><th class="num">Buenas pr.</th><th class="num">SEO</th><th class="num">FCP</th><th class="num">LCP</th></tr></thead>
+  <tbody>
+<!--TABLA_LIGHTHOUSE-->
+  </tbody>
+</table>
+<p class="tabla-pie">Antes → después; en negritas, los puntajes que cambiaron. FCP y LCP son de la medición final (4G simulado en móvil).</p>
+<p><b>RNF-03</b> pide una carga inicial menor a 3 s en una red 4G simulada. El peor caso medido es el login en móvil, con 1.8 s de FCP y LCP; el resto está entre 0.2 y 0.8 s, sin bloqueo del hilo principal (TBT de 0 ms) y con un desplazamiento de diseño (CLS) de 0.054 o menos. La meta se cumple con margen.</p>
+
+<h3 data-indice style="break-before:page; margin-top:0">9.4 Evaluación con usuarios (plan)</h3>
+<p>Las pruebas con usuarios no se han realizado; esta sección es el plan para obtener la evidencia de OE1 a OE4 y OE7. Sigue el método de la propuesta (§5).</p>
+<table>
+  <thead><tr><th style="width:24%">Aspecto</th><th>Plan</th></tr></thead>
+  <tbody>
+    <tr><td>Participantes</td><td>Cinco por perfil (coordinación y entrenadores), suficiente para encontrar la mayoría de los problemas de usabilidad (Nielsen, 2000).</td></tr>
+    <tr><td>Tareas</td><td>Entrenador: capturar a un grupo de 15 alumnos en el celular. Coordinación: dar de alta a un alumno con un tutor nuevo, encontrar a un alumno por folio, corregir una evaluación e imprimir una boleta.</td></tr>
+    <tr><td>Métricas</td><td>Tasa de éxito sin ayuda (meta: 90 %), tiempo por alumno en la captura (meta: 20 s o menos) y por alta (meta: menos de 2 min), y errores de validación.</td></tr>
+    <tr><td>Satisfacción</td><td>Cuestionario SUS de 10 reactivos al final. A cada reactivo impar se le resta 1 a la respuesta y a cada reactivo par se le resta a 5 la respuesta; la suma se multiplica por 2.5 (Brooke, 1996). Meta: 75 o más; el promedio de referencia es 68 (Sauro, 2011).</td></tr>
+    <tr><td>Severidad</td><td>Cada problema observado se califica de 0 a 4; los de severidad 3 o 4 se corrigen y se vuelven a probar (OE7).</td></tr>
+    <tr><td>Datos de menores</td><td>Las sesiones usan la rama de desarrollo con datos ficticios; no se graban rostros ni datos de alumnos reales (LFPDPPP, 2025).</td></tr>
+  </tbody>
+</table>
+
+<!-- ================================================================ 10 -->
+<h2 class="seccion" data-indice>10. Conclusiones</h2>
+<p><b>Lo que se cumplió.</b> VIVA SOCCER está en producción, en la nube, con los requerimientos <i>Must</i> de la web completos y una API que la aplicación móvil puede consumir con los permisos de cada rol resueltos en el servidor. El design system pasó al código sin pérdidas: los colores solo existen como tokens, y lo evaluado en el diseño es lo que se implementó. Las metas que se pueden medir con herramientas se cumplieron con evidencia: 100 en accesibilidad, buenas prácticas y SEO, y una carga inicial de 1.8 s en el peor caso, contra una meta de 3 s.</p>
+<p><b>Lo que enseñaron las pruebas.</b> Las {{TOTAL_PRUEBAS}} pruebas automatizadas no solo confirmaron que el código hace lo que debe: detectaron una configuración insegura antes de que llegara a producción, y la separación de entornos surgió de revisar, en solo lectura, qué había realmente en la base. La lección más general fue distinguir entre lo configurado y lo verificado: un archivo de despliegue no es un despliegue, y una prueba que pasa en una laptop no pasa necesariamente en el CI. Con datos de menores, además, la privacidad se diseña: qué se envía a un servicio externo, quién conoce cada contraseña y qué imprime un mensaje de error.</p>
+<p><b>Trabajo futuro.</b></p>
+<ul>
+  <li>Pruebas con usuarios y cuestionario SUS (sección 9.4), para cerrar OE1 a OE4 y OE7, y medir el tiempo de confirmación de guardado de OE6.</li>
+  <li>Mapa de empatía, wireframes de baja fidelidad y las dos evaluaciones heurísticas formales; llevar las pantallas de tutores y boleta a <code>design.html</code>.</li>
+  <li>Verificar Sentry en producción con <code>railway ssh</code> y activar en Railway la espera al CI antes de desplegar.</li>
+  <li>Activar HSTS y la redirección a HTTPS, los dos avisos pendientes de <code>manage.py check --deploy</code>.</li>
+  <li>Captura sin conexión en la web (RF-06), salto al siguiente alumno pendiente (heurística 7), gestión de cuentas desde la interfaz (RF-11) y filtro por temporada en los reportes (RF-10).</li>
+  <li>Envío de notificaciones push: hoy el servidor registra los tokens de los dispositivos, pero no envía notificaciones.</li>
+  <li>Aviso de privacidad visible (RNF-06) y analítica de uso sin cookies.</li>
+</ul>
+
+<!-- ================================================================ Bibliografía -->
+<h2 class="seccion" data-indice>Bibliografía</h2>
+<div class="bibliografia">
+<p>Big Sky Software. (s. f.). <i>htmx documentation</i>. Recuperado el 16 de noviembre de 2026, de https://htmx.org/docs/</p>
+<p>Brooke, J. (1996). SUS: A “quick and dirty” usability scale. En P. W. Jordan, B. Thomas, B. A. Weerdmeester y I. L. McClelland (Eds.), <i>Usability evaluation in industry</i> (pp. 189–194). Taylor &amp; Francis.</p>
+<p>Django Software Foundation. (s. f.). <i>Django documentation (versión 5.2)</i>. Recuperado el 16 de noviembre de 2026, de https://docs.djangoproject.com/en/5.2/</p>
+<p>Encode OSS. (s. f.). <i>Django REST framework</i>. Recuperado el 16 de noviembre de 2026, de https://www.django-rest-framework.org/</p>
+<p>Google. (s. f.). <i>Lighthouse overview</i>. Chrome for Developers. Recuperado el 16 de noviembre de 2026, de https://developer.chrome.com/docs/lighthouse/overview</p>
+<p>International Organization for Standardization. (2018). <i>ISO 9241-11:2018. Ergonomics of human-system interaction. Part 11: Usability: Definitions and concepts</i>. ISO.</p>
+<p>Ley Federal de Protección de Datos Personales en Posesión de los Particulares. (2025). <i>Diario Oficial de la Federación</i>, 20 de marzo de 2025.</p>
+<p>Microsoft. (s. f.). <i>Playwright for Python</i>. Recuperado el 16 de noviembre de 2026, de https://playwright.dev/python/</p>
+<p>Neon. (s. f.). <i>Branching</i>. Neon Docs. Recuperado el 16 de noviembre de 2026, de https://neon.com/docs/introduction/branching</p>
+<p>Nielsen, J. (1994). Heuristic evaluation. En J. Nielsen y R. L. Mack (Eds.), <i>Usability inspection methods</i> (pp. 25–62). John Wiley &amp; Sons.</p>
+<p>Nielsen, J. (2000). <i>Why you only need to test with 5 users</i>. Nielsen Norman Group. https://www.nngroup.com/articles/why-you-only-need-to-test-with-5-users/</p>
+<p>OWASP Foundation. (s. f.). <i>CSV injection</i>. Recuperado el 16 de noviembre de 2026, de https://owasp.org/www-community/attacks/CSV_Injection</p>
+<p>Railway. (s. f.-a). <i>Config as code</i>. Railway Docs. Recuperado el 16 de noviembre de 2026, de https://docs.railway.com/config-as-code</p>
+<p>Railway. (s. f.-b). <i>Infrastructure as code</i>. Railway Docs. Recuperado el 16 de noviembre de 2026, de https://docs.railway.com/infrastructure-as-code</p>
+<p>Sauro, J. (2011). <i>A practical guide to the System Usability Scale: Background, benchmarks &amp; best practices</i>. Measuring Usability LLC.</p>
+<p>Sentry. (s. f.). <i>Data management: Sensitive data (Python)</i>. Sentry Docs. Recuperado el 16 de noviembre de 2026, de https://docs.sentry.io/platforms/python/data-management/sensitive-data/</p>
+<p>Tailwind Labs. (s. f.). <i>Tailwind CSS documentation (v3)</i>. Recuperado el 16 de noviembre de 2026, de https://v3.tailwindcss.com/docs</p>
+<p>World Wide Web Consortium. (2018). <i>Web Content Accessibility Guidelines (WCAG) 2.1</i>. https://www.w3.org/TR/WCAG21/</p>
+</div>
+
+</body>
+</html>

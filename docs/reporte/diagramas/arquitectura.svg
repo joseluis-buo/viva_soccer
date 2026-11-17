@@ -1,0 +1,116 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1000 600" font-family="P052, 'Palatino Linotype', serif">
+  <!-- Arquitectura de VIVA SOCCER en la nube (estado al 16 de noviembre de 2026). -->
+  <defs>
+    <style>
+      .zona { fill: #FBF7EE; stroke: #A67C2E; stroke-width: 1.2; stroke-dasharray: 6 4; }
+      .zonatxt { fill: #8A6420; font-size: 13px; font-weight: bold; letter-spacing: 1px; }
+      .nodo { fill: #fff; stroke: #A67C2E; stroke-width: 1.6; }
+      .nodo-osc { fill: #141414; stroke: #A67C2E; stroke-width: 1.6; }
+      .titulo { fill: #141414; font-size: 15px; font-weight: bold; }
+      .titulo-cl { fill: #E9C46A; font-size: 15px; font-weight: bold; }
+      .txt { fill: #333; font-size: 12px; }
+      .txt-cl { fill: #F3EAD6; font-size: 12px; }
+      .flecha { stroke: #8A6420; stroke-width: 1.6; fill: none; marker-end: url(#punta); }
+      .flecha-p { stroke: #8A6420; stroke-width: 1.4; fill: none; stroke-dasharray: 5 4; marker-end: url(#punta); }
+      .etq { fill: #5A3E10; font-size: 11.5px; font-style: italic; }
+    </style>
+    <marker id="punta" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+      <path d="M0,0 L10,5 L0,10 z" fill="#8A6420"/>
+    </marker>
+  </defs>
+
+  <!-- Usuarios -->
+  <rect class="zona" x="10" y="10" width="230" height="280" rx="10"/>
+  <text class="zonatxt" x="24" y="32">USUARIOS</text>
+  <rect class="nodo" x="25" y="48" width="200" height="104" rx="8"/>
+  <text class="titulo" x="38" y="72">Navegador (web)</text>
+  <text class="txt" x="38" y="92">Administrador, secretaria</text>
+  <text class="txt" x="38" y="108">y entrenador. Django +</text>
+  <text class="txt" x="38" y="124">HTMX + Tailwind; sesión</text>
+  <text class="txt" x="38" y="140">de Django.</text>
+  <rect class="nodo" x="25" y="170" width="200" height="104" rx="8"/>
+  <text class="titulo" x="38" y="194">App móvil (Expo)</text>
+  <text class="txt" x="38" y="214">Entrenador y tutor.</text>
+  <text class="txt" x="38" y="230">Proyecto hermano, de otra</text>
+  <text class="txt" x="38" y="246">materia; usa la API REST</text>
+  <text class="txt" x="38" y="262">con JWT.</text>
+
+  <!-- Railway -->
+  <rect class="zona" x="300" y="10" width="360" height="280" rx="10"/>
+  <text class="zonatxt" x="314" y="32">RAILWAY · PRODUCCIÓN</text>
+  <rect class="nodo-osc" x="318" y="48" width="324" height="226" rx="8"/>
+  <text class="titulo-cl" x="334" y="74">vivasoccer-production.up.railway.app</text>
+  <text class="txt-cl" x="334" y="98">HTTPS en el borde de Railway → gunicorn (2 workers)</text>
+  <text class="txt-cl" x="334" y="120">Django 5.2 · app escuela (web) · app api (/api/v1/)</text>
+  <text class="txt-cl" x="334" y="142">WhiteNoise: estáticos comprimidos y con hash</text>
+  <text class="txt-cl" x="334" y="166">Build: Tailwind + collectstatic</text>
+  <text class="txt-cl" x="334" y="184">Pre-deploy: migrate · Inicio: gunicorn</text>
+  <text class="txt-cl" x="334" y="202">Reinicio: On Failure, 3 reintentos</text>
+  <text class="txt-cl" x="334" y="226">Variables (panel): DATABASE_URL,</text>
+  <text class="txt-cl" x="334" y="244">DJANGO_SECRET_KEY, DJANGO_ALLOWED_HOSTS,</text>
+  <text class="txt-cl" x="334" y="262">DJANGO_CSRF_TRUSTED, SENTRY_DSN</text>
+
+  <!-- Neon -->
+  <rect class="zona" x="720" y="10" width="270" height="280" rx="10"/>
+  <text class="zonatxt" x="734" y="32">NEON · POSTGRESQL 18</text>
+  <rect class="nodo" x="736" y="48" width="238" height="104" rx="8"/>
+  <text class="titulo" x="750" y="72">Rama production</text>
+  <text class="txt" x="750" y="92">Base de producción. Solo</text>
+  <text class="txt" x="750" y="108">Railway tiene su URL;</text>
+  <text class="txt" x="750" y="124">contraseña rotada 16/11/2026.</text>
+  <rect class="nodo" x="736" y="170" width="238" height="104" rx="8"/>
+  <text class="titulo" x="750" y="194">Rama desarrollo</text>
+  <text class="txt" x="750" y="214">Solo esquema + seed_demo.</text>
+  <text class="txt" x="750" y="230">La usan las laptops del</text>
+  <text class="txt" x="750" y="246">equipo; host y contraseña</text>
+  <text class="txt" x="750" y="262">distintos a producción.</text>
+
+  <!-- GitHub -->
+  <rect class="zona" x="10" y="340" width="480" height="250" rx="10"/>
+  <text class="zonatxt" x="24" y="362">GITHUB</text>
+  <rect class="nodo" x="25" y="378" width="190" height="96" rx="8"/>
+  <text class="titulo" x="38" y="402">Repositorio</text>
+  <text class="txt" x="38" y="422">joseluis-buo/viva_soccer</text>
+  <text class="txt" x="38" y="438">rama main</text>
+  <text class="txt" x="38" y="456">Push del equipo</text>
+  <rect class="nodo" x="250" y="378" width="225" height="196" rx="8"/>
+  <text class="titulo" x="263" y="402">GitHub Actions (CI)</text>
+  <text class="txt" x="263" y="424">Job pruebas: check,</text>
+  <text class="txt" x="263" y="440">makemigrations --check,</text>
+  <text class="txt" x="263" y="456">pruebas en PostgreSQL 18</text>
+  <text class="txt" x="263" y="472">de servicio, Tailwind.</text>
+  <text class="txt" x="263" y="498">Job e2e: Playwright con</text>
+  <text class="txt" x="263" y="514">SQLite temporal y</text>
+  <text class="txt" x="263" y="530">seed_demo (nunca Neon).</text>
+  <text class="txt" x="263" y="556">En cada push y PR a main.</text>
+  <rect class="nodo" x="25" y="490" width="190" height="84" rx="8"/>
+  <text class="titulo" x="38" y="514">Laptops del equipo</text>
+  <text class="txt" x="38" y="534">runserver + .env</text>
+  <text class="txt" x="38" y="550">→ rama desarrollo</text>
+  <text class="txt" x="38" y="566">manage.py test → SQLite</text>
+
+  <!-- Sentry -->
+  <rect class="zona" x="540" y="340" width="450" height="250" rx="10"/>
+  <text class="zonatxt" x="554" y="362">MONITOREO</text>
+  <rect class="nodo" x="556" y="378" width="418" height="120" rx="8"/>
+  <text class="titulo" x="570" y="402">Sentry (solo si existe SENTRY_DSN)</text>
+  <text class="txt" x="570" y="424">Recibe: tipo de error, archivo y línea, ruta sin parámetros.</text>
+  <text class="txt" x="570" y="442">No recibe: IP, usuario, cookies, encabezados, cuerpo,</text>
+  <text class="txt" x="570" y="460">query string ni variables locales (before_send).</text>
+  <text class="txt" x="570" y="482">Prueba en producción con railway ssh: pendiente.</text>
+
+  <!-- ===== Flechas ===== -->
+  <path class="flecha" d="M225,100 L316,100"/>
+  <text class="etq" x="238" y="92">HTTPS</text>
+  <path class="flecha" d="M225,222 L316,222"/>
+  <text class="etq" x="232" y="214">HTTPS + JWT</text>
+  <path class="flecha" d="M642,100 L734,100"/>
+  <text class="etq" x="652" y="92">SSL</text>
+  <path class="flecha-p" d="M215,560 L232,560 L232,584 L512,584 L512,315 L700,315 L700,222 L734,222"/>
+  <text class="etq" x="520" y="308">.env local → rama desarrollo</text>
+  <path class="flecha" d="M215,426 L248,426"/>
+  <path class="flecha" d="M120,378 C 120,320 420,330 440,276"/>
+  <text class="etq" x="160" y="326">push a main → despliegue</text>
+  <path class="flecha" d="M560,276 L640,376"/>
+  <text class="etq" x="606" y="330">errores</text>
+</svg>

@@ -1,0 +1,97 @@
+/* Estilo del reporte: negro y dorado, como la propuesta y el segundo avance.
+   Palatino Linotype para el texto normal; P052 (clon libre de Palatino/Palladio)
+   para negritas e itálicas, que Palatino Linotype no trae instalados. */
+
+@font-face { font-family: "Reporte"; font-weight: 400; font-style: normal;
+  src: local("Palatino Linotype"), local("PalatinoLinotype-Roman"), local("P052-Roman"); }
+@font-face { font-family: "Reporte"; font-weight: 700; font-style: normal; src: local("P052-Bold"); }
+@font-face { font-family: "Reporte"; font-weight: 400; font-style: italic; src: local("P052-Italic"); }
+@font-face { font-family: "Reporte"; font-weight: 700; font-style: italic; src: local("P052-BoldItalic"); }
+
+:root {
+  --negro: #141414;
+  --oro: #A67C2E;
+  --oro-oscuro: #8A6420;
+  --oro-claro: #F3EAD6;
+  --tinta: #1E1E1E;
+  --gris: #5C5C5C;
+}
+
+* { box-sizing: border-box; }
+
+html { font-family: "Reporte", "P052", serif; color: var(--tinta); font-size: 11pt; }
+body { margin: 0; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+
+@page { size: Letter; margin: 0.95in 0.9in 0.85in 0.9in; }
+/* Los diagramas van en páginas horizontales para que su texto se lea. */
+@page horizontal { size: Letter landscape; margin: 0.85in 0.9in 0.8in 0.9in; }
+.horizontal { page: horizontal; }
+.horizontal figure { margin-top: 0.1in; }
+
+p code, li code { white-space: nowrap; }
+p { margin: 0 0 0.62em; line-height: 1.42; text-align: justify; hyphens: auto; }
+li { line-height: 1.38; margin-bottom: 0.22em; }
+ul, ol { margin: 0 0 0.7em; padding-left: 1.3em; }
+code, .mono { font-family: "DejaVu Sans Mono", monospace; font-size: 8.6pt;
+  background: #F6F1E6; padding: 0 2px; border-radius: 2px; hyphens: none; }
+a { color: inherit; text-decoration: none; }
+b, strong { font-weight: 700; }
+
+h2 { font-size: 19pt; color: var(--oro-oscuro); font-weight: 700; margin: 0 0 0.55em;
+  padding-bottom: 0.18em; border-bottom: 1.4px solid var(--oro); break-after: avoid; }
+h2.seccion { break-before: page; }
+h3 { font-size: 12.6pt; font-weight: 700; margin: 1.05em 0 0.4em; break-after: avoid; }
+h4 { font-size: 11pt; font-weight: 700; font-style: italic; color: var(--oro-oscuro);
+  margin: 0.8em 0 0.3em; break-after: avoid; }
+
+/* ---------- Tablas ---------- */
+table { width: 100%; border-collapse: collapse; margin: 0.4em 0 1em; font-size: 9.6pt;
+  break-inside: auto; }
+thead { display: table-header-group; }
+tr { break-inside: avoid; }
+th { background: var(--negro); color: #fff; font-weight: 700; text-align: left;
+  padding: 5px 7px; border: 1px solid var(--negro); }
+td { padding: 4.5px 7px; border: 1px solid #D9C9A3; vertical-align: top; line-height: 1.32;
+  hyphens: none; }
+tbody tr:nth-child(even) td { background: #FAF5EA; }
+td.num, th.num { text-align: center; white-space: nowrap; }
+tr.total td { font-weight: 700; background: var(--oro-claro) !important; }
+.tabla-pie { font-size: 8.8pt; color: var(--gris); font-style: italic; margin-top: -0.6em;
+  margin-bottom: 1em; text-align: left; }
+
+/* Estados */
+.ok { color: #2E6B3A; font-weight: 700; }
+.parcial { color: #8A6420; font-weight: 700; }
+.pend { color: #8C2F2F; font-weight: 700; }
+
+/* ---------- Figuras ---------- */
+figure { margin: 0.8em 0 1.1em; text-align: center; break-inside: avoid; }
+figure img, figure svg { max-width: 100%; border: 1px solid #CDBB92; }
+figure.sin-borde img, figure.sin-borde svg { border: 0; }
+figcaption { font-size: 9.2pt; font-style: italic; color: var(--gris); margin-top: 0.45em;
+  hyphens: none; line-height: 1.3; padding: 0 0.3in; }
+.par { display: flex; gap: 0.22in; align-items: flex-start; break-inside: avoid; }
+.par > figure { flex: 1; margin-top: 0; }
+
+/* Recuadros */
+.nota { border-left: 3px solid var(--oro); background: #FBF7EE; padding: 0.55em 0.8em;
+  margin: 0.6em 0 1em; break-inside: avoid; font-size: 10.2pt; }
+.nota p:last-child { margin-bottom: 0; }
+.hallazgo { border: 1px solid #D9C9A3; border-top: 3px solid var(--negro); padding: 0.6em 0.85em 0.3em;
+  margin: 0 0 0.9em; break-inside: avoid; }
+.hallazgo h4 { margin-top: 0; }
+.hallazgo p { font-size: 10.2pt; margin-bottom: 0.4em; }
+
+/* ---------- Índice ---------- */
+.indice { list-style: none; padding: 0; margin: 0 0 1.4em; }
+.indice li { display: flex; align-items: baseline; margin: 0 0 0.28em; }
+.indice li.h2 { font-weight: 700; margin-top: 0.55em; }
+.indice li.h3 { padding-left: 1.4em; font-size: 10.4pt; }
+.indice .puntos { flex: 1; border-bottom: 1px dotted #9A8A66; margin: 0 6px; transform: translateY(-3px); }
+.indice .pag { min-width: 1.6em; text-align: right; }
+.indice li.h3 > span:first-child { max-width: 88%; }
+h2.titulo-indice { border-bottom: 1.4px solid var(--oro); }
+
+.bibliografia p { padding-left: 0.5in; text-indent: -0.5in; text-align: left; font-size: 9.8pt;
+  line-height: 1.32; margin-bottom: 0.48em; }
+.cita { font-size: 9pt; color: var(--gris); }
