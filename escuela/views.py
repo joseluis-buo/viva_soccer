@@ -138,7 +138,11 @@ def padron(request):
 
     alumnos = Alumno.objects.select_related("tutor")
     if q:
-        alumnos = alumnos.filter(Q(nombre__icontains=q) | Q(tutor__nombre__icontains=q))
+        coincide = Q(nombre__icontains=q) | Q(tutor__nombre__icontains=q)
+        folio = Alumno.id_de_folio(q)
+        if folio:
+            coincide |= Q(pk=folio)
+        alumnos = alumnos.filter(coincide)
     if grupo:
         try:
             categoria, horario = grupo.split("-")

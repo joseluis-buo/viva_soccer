@@ -88,6 +88,14 @@ class AlumnoModeloTests(TestCase):
     def test_folio_sin_id_es_marcador(self):
         self.assertEqual(Alumno().folio, "VS-----")
 
+    def test_id_de_folio_acepta_las_formas_en_que_se_escribe(self):
+        for texto in ("VS-0010", "vs-0010", "VS0010", "VS- 0010", "0010", "10", " 10 "):
+            self.assertEqual(Alumno.id_de_folio(texto), 10, texto)
+
+    def test_id_de_folio_ignora_lo_que_no_es_folio(self):
+        for texto in ("Diego", "VS-", "VS-0000", "0", "10a", "12-34", ""):
+            self.assertIsNone(Alumno.id_de_folio(texto), texto)
+
     def test_telefono_con_formato_incorrecto_no_valida(self):
         tutor = Tutor(nombre="Marisol Ruiz", telefono="5512345678")
         with self.assertRaises(ValidationError):
@@ -307,6 +315,41 @@ class CapturaTests(TestCase):
             },
         )
         self.assertFalse(Evaluacion.objects.filter(alumno=self.alumno).exists())
+
+
+class BusquedaPadronTests(TestCase):
+    """RF-03: el buscador del padrón encuentra por alumno, tutor o folio."""
+
+    @classmethod
+    def setUpTestData(cls):
+        cls.diego = crear_alumno()
+        cls.lucia = crear_alumno(nombre="Lucía Beltrán", tutor=crear_tutor(nombre="Ana Beltrán"))
+
+    def setUp(self):
+        self.client.force_login(usuario_con_grupo("sec", "secretaria"))
+
+    def buscar(self, q):
+        respuesta = self.client.get(reverse("padron"), {"q": q})
+        self.assertEqual(respuesta.status_code, 200)
+        return [a.pk for a in respuesta.context["pagina"]]
+
+    def test_encuentra_por_folio_en_cualquier_forma(self):
+        pk = self.lucia.pk
+        for q in (f"VS-{pk:04d}", f"{pk:04d}", str(pk), f"vs{pk}"):
+            self.assertEqual(self.buscar(q), [pk], q)
+
+    def test_sigue_encontrando_por_nombre_y_por_tutor(self):
+        self.assertEqual(self.buscar("diego"), [self.diego.pk])
+        self.assertEqual(self.buscar("Ana Beltrán"), [self.lucia.pk])
+
+    def test_folio_inexistente_no_encuentra_nada(self):
+        self.assertEqual(self.buscar("VS-9999"), [])
+
+    def test_la_busqueda_por_folio_respeta_el_filtro_de_grupo(self):
+        respuesta = self.client.get(
+            reverse("padron"), {"q": str(self.lucia.pk), "grupo": "MINI-LUN_MIE"}
+        )
+        self.assertEqual(list(respuesta.context["pagina"]), [])
 
 
 class SecretariaTests(TestCase):

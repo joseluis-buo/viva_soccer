@@ -1,3 +1,4 @@
+import re
 import secrets
 from datetime import timedelta
 
@@ -96,6 +97,18 @@ class Alumno(models.Model):
     def folio(self):
         """Identificador visible tipo VS-0142 (deriva del id, no se guarda)."""
         return f"VS-{self.pk:04d}" if self.pk else "VS-----"
+
+    @staticmethod
+    def id_de_folio(texto):
+        """El id que corresponde a un folio escrito como VS-0010, vs0010, 0010 o 10.
+
+        Devuelve None si el texto no parece folio. Vive aquí, junto a `folio`,
+        para que la regla de cómo se escribe un folio esté en un solo lugar.
+        """
+        coincide = re.fullmatch(r"(?:VS-?\s*)?0*(\d{1,9})", texto.strip(), re.IGNORECASE)
+        if not coincide:
+            return None
+        return int(coincide.group(1)) or None  # VS-0000 no existe
 
 
 MAX_OBSERVACIONES = 500
