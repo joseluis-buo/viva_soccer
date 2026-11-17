@@ -8,7 +8,7 @@ Con DEBUG apagado (producción) se niega a correr: crearía cuentas con
 contraseñas conocidas (admin/admin, secretaria/secretaria...).
 
 --reset borra datos de todos los que usan la misma base (el equipo comparte
-la de Neon), así que además pide escribir el nombre de la base."""
+la rama `desarrollo` de Neon), así que además pide escribir el nombre de la base."""
 
 import random
 from datetime import date, timedelta

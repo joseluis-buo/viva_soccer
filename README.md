@@ -32,8 +32,8 @@ pip install -r requirements.txt
 #    el binario si no está)
 python bin/compilar_css.py
 
-# 3. Variables de entorno (ver "Configuración" abajo)
-cp .env.example .env    # y pon la contraseña real
+# 3. Variables de entorno (ver "Entornos y bases de datos" abajo)
+cp .env.example .env    # y pega la URL de la rama `desarrollo` de Neon
 
 # 4. Base de datos
 python manage.py migrate
@@ -46,6 +46,52 @@ python manage.py runserver
 ```
 
 Abre http://127.0.0.1:8000/ y entra con uno de los usuarios demo.
+
+## Entornos y bases de datos
+
+Cada entorno tiene su propia base. **Nadie del equipo tiene la de producción
+en su `.env`**: así un `seed_demo`, un `--reset` o una migración a medias en
+una laptop no pueden tocar los datos reales.
+
+| Entorno | Dónde corre | Base | Quién tiene la URL |
+|---------|-------------|------|--------------------|
+| Desarrollo | Las laptops del equipo | Rama **`desarrollo`** de Neon (compartida por los cuatro) | Cada quien, en su `.env` |
+| Desarrollo sin internet | Una laptop | SQLite (`db.sqlite3`), si `.env` no define `DATABASE_URL` | — |
+| Pruebas | `python manage.py test` | SQLite en memoria; con `TEST_POSTGRES=1`, una base `test_neondb` temporal en la rama `desarrollo` | — |
+| CI | GitHub Actions | Un PostgreSQL desechable dentro del job | El propio workflow |
+| Producción | Railway | Rama **principal** de Neon | Solo Railway, en sus variables |
+
+Las dos ramas son del mismo proyecto de Neon, pero tienen host y contraseña
+distintos: con la URL de `desarrollo` no se entra a producción.
+
+### Tu `.env` local
+
+```bash
+DATABASE_URL=postgresql://neondb_owner:CONTRASEÑA@ep-wandering-queen-b5yrlf72.c-7.us-east-2.aws.neon.tech/neondb?sslmode=require&channel_binding=require
+```
+
+Solo esa línea; la contraseña te la pasa quien administra Neon. `DEBUG`
+queda encendido y la llave secreta es la de desarrollo, que es lo correcto en
+tu máquina. El host debe empezar con **`ep-wandering-queen`** (rama
+`desarrollo`). Si tu `.env` dice `ep-quiet-thunder`, estás apuntando a
+producción: cámbialo.
+
+### Si hay que rehacer la rama `desarrollo`
+
+Se creó con **solo el esquema** de producción, sin datos. Una rama así trae
+las tablas pero `django_migrations` vacía, y `migrate` fallaría al intentar
+crearlas de nuevo. Por eso, al crearla, se borran esas tablas vacías y se
+corre `migrate` desde cero, que también crea los grupos y permisos de las
+migraciones de datos. Después, `seed_demo`.
+
+### Qué corre en cada base
+
+- **`migrate`**: en desarrollo lo corre quien hace la migración (y avisa al
+  equipo, porque la rama es compartida). En producción solo lo corre el
+  pre-deploy de Railway cuando la migración llega a `main`.
+- **`seed_demo`**: solo en desarrollo. Con `DEBUG` apagado se niega a correr.
+- **Usuarios de verdad** (secretaria, entrenadores, códigos de los papás): solo
+  en producción, desde el admin de Railway.
 
 ## Configuración
 
@@ -72,8 +118,8 @@ las que ya existen.
 ## Despliegue en Railway
 
 La web y la API corren en un servicio de Railway conectado al repositorio de
-GitHub. **La base sigue siendo la de Neon**: Railway no tiene base propia, y
-la web y la app móvil comparten la misma.
+GitHub. **La base es la rama principal de Neon**: Railway no tiene base
+propia, y la web y la app móvil de producción comparten la misma.
 
 ### Qué hay en el repositorio
 
@@ -88,15 +134,16 @@ En cada push a `main`, Railway hace esto:
 1. **Build**: instala `requirements.txt`, compila el CSS de Tailwind y corre
    `collectstatic`. WhiteNoise sirve los estáticos desde gunicorn, comprimidos
    y con hash en el nombre.
-2. **Pre-deploy**: `python manage.py migrate` contra Neon. Si una migración
-   falla, el despliegue se detiene y la versión anterior sigue en línea.
+2. **Pre-deploy**: `python manage.py migrate` contra la rama principal de
+   Neon. Si una migración falla, el despliegue se detiene y la versión
+   anterior sigue en línea.
 3. **Inicio**: `gunicorn vivasoccer.wsgi --workers 2`. Gunicorn escucha en el
    puerto que da Railway en `$PORT`.
 
 > [!IMPORTANT]
-> Como el pre-deploy migra la base compartida, **una migración que llega a
-> `main` se aplica en Neon para los cuatro**. Revisen las migraciones antes de
-> hacer merge.
+> El pre-deploy migra producción: **una migración que llega a `main` se
+> aplica en la base real**. Pruébenla antes en la rama `desarrollo` y revisen
+> que el CI esté en verde antes de hacer merge.
 
 ### Por qué el CSS se compila en el build
 
@@ -120,7 +167,7 @@ En el servicio → **Variables**:
 
 | Variable               | Valor |
 |------------------------|-------|
-| `DATABASE_URL`         | La cadena de conexión de Neon, la misma del `.env` |
+| `DATABASE_URL`         | La cadena de la rama principal de Neon. Solo vive aquí, no en ningún `.env` |
 | `DJANGO_SECRET_KEY`    | Una llave nueva y larga, distinta de la de desarrollo (ver abajo) |
 | `DJANGO_ALLOWED_HOSTS` | El dominio de Railway, sin `https://`: `vivasoccer.up.railway.app` |
 | `DJANGO_CSRF_TRUSTED`  | El mismo dominio, con `https://`: `https://vivasoccer.up.railway.app` |
