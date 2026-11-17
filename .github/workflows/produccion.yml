@@ -1,0 +1,27 @@
+# Revisa producción después de cada despliegue de Railway, solo con GET.
+# Railway reporta sus despliegues a GitHub; cuando uno de producción termina
+# como "success", GitHub dispara este workflow. Si la web no responde bien
+# (por ejemplo, un build sin collectstatic), el job queda en rojo.
+# También se puede correr a mano desde la pestaña Actions.
+name: Producción
+
+on:
+  deployment_status:
+  workflow_dispatch:
+
+jobs:
+  verificar:
+    if: >-
+      github.event_name == 'workflow_dispatch' ||
+      (github.event.deployment_status.state == 'success' &&
+       contains(github.event.deployment.environment, 'production'))
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version-file: .python-version
+
+      - name: Verificar /acceso/, CSS y favicon
+        run: python bin/verificar_produccion.py https://vivasoccer-production.up.railway.app

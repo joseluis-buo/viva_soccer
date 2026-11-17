@@ -187,3 +187,65 @@ class PruebasSinNeonTests(SimpleTestCase):
         )
         self.assertEqual(proceso.returncode, 0, proceso.stderr)
         self.assertEqual(proceso.stdout.strip(), "sqlite :memory:")
+
+
+def _cargar_verificador():
+    """bin/ no es un paquete: se carga el script por su ruta."""
+    import importlib.util
+    spec = importlib.util.spec_from_file_location(
+        "verificar_produccion", RAIZ / "bin" / "verificar_produccion.py")
+    modulo = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(modulo)
+    return modulo
+
+
+class VerificarProduccionTests(SimpleTestCase):
+    """bin/verificar_produccion.py, con respuestas simuladas (sin red)."""
+
+    HTML_BUENO = (
+        '<link rel="icon" href="/static/img/favicon.7a4ce76e8544.svg">'
+        '<link rel="stylesheet" href="/static/css/tailwind.4a9b270e2397.css">'
+        "<main>...</main>"
+    )
+
+    def setUp(self):
+        self.revisar = _cargar_verificador().revisar
+
+    def servidor(self, respuestas):
+        """Un `pedir` falso: ruta -> (código, content-type, cuerpo); lo demás da 404."""
+        def pedir(url):
+            ruta = url.removeprefix("https://ejemplo.mx")
+            return respuestas.get(ruta, (404, "text/html", ""))
+        return pedir
+
+    def test_produccion_bien(self):
+        pedir = self.servidor({
+            "/acceso/": (200, "text/html; charset=utf-8", self.HTML_BUENO),
+            "/static/css/tailwind.4a9b270e2397.css": (200, "text/css", ""),
+            "/static/img/favicon.7a4ce76e8544.svg": (200, "image/svg+xml", ""),
+        })
+        self.assertEqual(self.revisar("https://ejemplo.mx/", pedir), [])
+
+    def test_despliegue_sin_collectstatic_como_el_16_de_noviembre(self):
+        # Sin manifiesto, Django no puede ni armar la página: 500.
+        pedir = self.servidor({"/acceso/": (500, "text/html", "Server Error (500)")})
+        self.assertEqual(self.revisar("https://ejemplo.mx", pedir),
+                         ["/acceso/ respondió 500 (se esperaba 200)."])
+
+    def test_estaticos_sin_hash_o_que_no_existen(self):
+        html = ('<link rel="icon" href="/static/img/favicon.svg">'
+                '<link rel="stylesheet" href="/static/css/tailwind.4a9b270e2397.css"><main>')
+        pedir = self.servidor({"/acceso/": (200, "text/html", html)})
+        problemas = self.revisar("https://ejemplo.mx", pedir)
+        self.assertEqual(len(problemas), 2)
+        self.assertIn("respondió 404", problemas[0])          # el CSS no existe
+        self.assertIn("favicon con hash", problemas[1])       # el favicon no tiene hash
+
+    def test_pagina_sin_main(self):
+        pedir = self.servidor({
+            "/acceso/": (200, "text/html", self.HTML_BUENO.replace("<main>", "<div>")),
+            "/static/css/tailwind.4a9b270e2397.css": (200, "text/css", ""),
+            "/static/img/favicon.7a4ce76e8544.svg": (200, "image/svg+xml", ""),
+        })
+        self.assertEqual(self.revisar("https://ejemplo.mx", pedir),
+                         ["/acceso/ no trae su región <main>."])
