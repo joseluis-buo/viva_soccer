@@ -91,7 +91,7 @@
 <table>
   <thead><tr><th style="width:27%">Heurística</th><th style="width:30%">Criterio de VIVA SOCCER</th><th>En la versión final</th></tr></thead>
   <tbody>
-    <tr><td>1. Visibilidad del estado</td><td>Confirmación al guardar; indicador de pendientes.</td><td>Mensaje “Se guardaron N evaluaciones”, barra de avance “Capturados N / M” y borde de color en la tarjeta ya capturada.</td></tr>
+    <tr><td>1. Visibilidad del estado</td><td>Confirmación al guardar; indicador de pendientes.</td><td>Mensaje “Se guardó 1 evaluación” o “Se guardaron N evaluaciones”, barra de avance “Capturados N / M” y borde de color en la tarjeta ya capturada.</td></tr>
     <tr><td>2. Relación con el mundo real</td><td>Vocabulario de la escuela.</td><td>Categorías, horarios, pase, recepción, tiro y folio VS-0000.</td></tr>
     <tr><td>3. Control y libertad</td><td>Corregir sin salir de la lista.</td><td>Reenviar la captura actualiza en lugar de duplicar; la ficha permite editar y borrar evaluaciones.</td></tr>
     <tr><td>4. Consistencia</td><td>Mismos componentes en todas las pantallas.</td><td>Tokens únicos en <code>tailwind.config.js</code> y clases de componente compartidas.</td></tr>
@@ -383,9 +383,8 @@
   <p><b>Corrección.</b> Se separaron las ramas <code>production</code> y <code>desarrollo</code> de Neon (sección 8.3); <code>.env.example</code> dejó de traer el host de producción y el README documenta qué base usa cada entorno.</p>
 </div>
 <div class="hallazgo">
-  <h4>4. Contraseñas de base de datos compartidas y expuestas</h4>
-  <p><b>Qué pasó.</b> Mientras la base fue compartida, todos los que desarrollan conocían la contraseña de la base de producción. Más tarde, la de desarrollo quedó expuesta dos veces: parcialmente, en el mensaje de error de una prueba que imprimió la cadena de conexión, y completa, en un mensaje que no era privado.</p>
-  <p><b>Corrección.</b> La contraseña de <code>production</code> se rotó antes de dársela a Railway, y la de <code>desarrollo</code> se rotó las dos veces. Las rotaciones se hicieron con la CLI de Neon, escribiendo la contraseña directo a su destino, sin mostrarla, y se verificó que la anterior ya no entrara y que la otra rama no cambiara. La prueba que imprimió la cadena se reescribió para que no pueda volver a hacerlo.</p>
+  <h4>4. Una credencial de desarrollo expuesta</h4>
+  <p>Una credencial de la base de desarrollo quedó expuesta en el registro de la sesión de trabajo. Se rotó de inmediato, verificando que la anterior ya no entrara y que producción no cambiara, y se adoptó la regla de consultar los secretos solo fuera de la herramienta.</p>
 </div>
 <div class="hallazgo">
   <h4>5. Una prueba que se conectaba a Neon y el CI en rojo</h4>
