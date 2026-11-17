@@ -132,14 +132,16 @@ tiene base propia, y la web y la app móvil de producción comparten la misma.
 |------------------------|----------|
 | `.python-version`      | Python 3.12 (sin él, Railway usaría 3.13) |
 | `bin/compilar_css.py`  | Descarga Tailwind v3.4.17 si falta y compila el CSS |
-| `railway.json`         | **En retiro.** Railway deja de leerlo el 2026-12-01; su contenido pasó al panel (abajo) |
+
+No hay `railway.json`: la configuración del servicio vive en el panel (abajo).
 
 ### Configuración del servicio en el panel de Railway
 
-Railway retiró *Config as Code* (`railway.json`): deja de leerse el
-2026-12-01. Su reemplazo, *Infrastructure as Code*, pide Node o un SDK en
-beta, así que la configuración vive en el panel del servicio (**Settings**).
-Si alguien la cambia, que actualice esta tabla.
+Railway retiró *Config as Code*: `railway.json` deja de leerse el
+2026-12-01, y el de este repo se borró después de pasar su contenido al panel.
+Su reemplazo, *Infrastructure as Code*, pide Node o un SDK en beta, así que la
+configuración vive en el panel del servicio (**Settings**). Si alguien la
+cambia, que actualice esta tabla: es la única copia escrita.
 
 | Sección del panel | Campo | Valor |
 |-------------------|-------|-------|
@@ -215,10 +217,13 @@ por la variable `RAILWAY_ENVIRONMENT_NAME`, que Railway pone sola.
    `DJANGO_ALLOWED_HOSTS` y `DJANGO_CSRF_TRUSTED` lo necesitan.
 3. En **Variables**, capturar las de la tabla con ese dominio. No usar
    variables de referencia a un Postgres de Railway (`${{Postgres...}}`).
-4. Aplicar los cambios (**Deploy**). En **Deployments** se ven los logs del
+4. En **Settings**, capturar los campos de la tabla *Configuración del
+   servicio en el panel*. Sin ellos no se compila el CSS ni se corren las
+   migraciones.
+5. Aplicar los cambios (**Deploy**). En **Deployments** se ven los logs del
    build, del pre-deploy (migraciones) y de gunicorn.
-5. Entrar a `https://<dominio>/acceso/` con un usuario de la rama `production`.
-6. En la app móvil, cambiar la URL de la API a `https://<dominio>/api/v1/`.
+6. Entrar a `https://<dominio>/acceso/` con un usuario de la rama `production`.
+7. En la app móvil, cambiar la URL de la API a `https://<dominio>/api/v1/`.
 
 Para verificar que no hay base de Railway: en el lienzo del proyecto solo debe
 aparecer el servicio de la web, sin un cuadro de PostgreSQL.
@@ -338,7 +343,6 @@ escuela/            App principal
   management/commands/seed_demo.py
 templates/          Plantillas (base + escuela/*)
 bin/compilar_css.py Descarga Tailwind si falta y compila el CSS
-railway.json        Configuración del despliegue en Railway
 static/             input.css de Tailwind, CSS compilado, HTMX y Chart.js locales
 design/design.html  Referencia visual y tokens de diseño
 ```
