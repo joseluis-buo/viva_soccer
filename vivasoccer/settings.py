@@ -104,6 +104,12 @@ if not DEBUG:
     SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
     SESSION_COOKIE_SECURE = True
     CSRF_COOKIE_SECURE = True
+    # Auditoría R2U4 (OWASP A05): toda petición por HTTP se redirige a HTTPS, y
+    # HSTS le pide al navegador no volver a intentar HTTP con este dominio.
+    # Se empieza con una hora: si algo falla, el navegador lo olvida pronto.
+    # Verificado en producción, se puede subir a un año (31536000).
+    SECURE_SSL_REDIRECT = True
+    SECURE_HSTS_SECONDS = int(os.environ.get('DJANGO_HSTS_SECONDS', '3600'))
 
 # Application definition
 

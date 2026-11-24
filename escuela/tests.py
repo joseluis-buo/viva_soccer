@@ -1084,6 +1084,25 @@ class ConfiguracionProduccionTests(TestCase):
             "['https://vivasoccer.up.railway.app'] True",
         )
 
+    def test_en_railway_se_fuerza_https_con_hsts(self):
+        # Auditoría R2U4: manage.py check --deploy marcaba security.W004 y W008.
+        proceso = self.importar_settings(
+            "import vivasoccer.settings as s; "
+            "print(s.SECURE_SSL_REDIRECT, s.SECURE_HSTS_SECONDS)",
+            **self.ENTORNO_RAILWAY,
+        )
+        self.assertEqual(proceso.returncode, 0, proceso.stderr)
+        self.assertEqual(proceso.stdout.strip(), "True 3600")
+
+    def test_en_desarrollo_no_se_fuerza_https(self):
+        proceso = self.importar_settings(
+            "import vivasoccer.settings as s; "
+            "print(getattr(s, 'SECURE_SSL_REDIRECT', False), getattr(s, 'SECURE_HSTS_SECONDS', 0))",
+            DJANGO_DEBUG="1",
+        )
+        self.assertEqual(proceso.returncode, 0, proceso.stderr)
+        self.assertEqual(proceso.stdout.strip(), "False 0")
+
     def test_sin_allowed_hosts_en_produccion_falla_con_mensaje_claro(self):
         if "DJANGO_ALLOWED_HOSTS" in dotenv_values(self.RAIZ / ".env"):
             self.skipTest("El .env local define DJANGO_ALLOWED_HOSTS.")
