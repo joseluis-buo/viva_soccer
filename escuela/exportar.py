@@ -18,6 +18,8 @@ from .views import filtrar_padron
 
 BOM = "﻿"
 
+INICIOS_DE_FORMULA = ("=", "+", "-", "@", "\t", "\r")
+
 ENCABEZADOS_EVALUACIONES = [
     "Folio", "Alumno", "Categoría", "Horario", "Fecha",
     "Pase", "Recepción", "Tiro", "Promedio", "Observaciones", "Capturada por",
@@ -27,16 +29,20 @@ ENCABEZADOS_EVALUACIONES = [
 def _celda(valor):
     """Texto seguro para Excel.
 
-    Una celda que empieza con = + - @ Excel la ejecuta como fórmula. Los nombres
-    y las observaciones los escribe la gente, así que se les antepone un apóstrofo.
+    Una celda que empieza con = + - @ Excel la ejecuta como fórmula, y también si
+    empieza con tabulador o retorno de carro seguido de una fórmula (OWASP, CSV
+    injection). Los nombres y las observaciones los escribe la gente, así que se
+    les antepone un apóstrofo.
     """
     texto = "" if valor is None else str(valor)
-    return "'" + texto if texto[:1] in ("=", "+", "-", "@") else texto
+    return "'" + texto if texto[:1] in INICIOS_DE_FORMULA else texto
 
 
 def _respuesta_csv(nombre_archivo, encabezados, filas):
     respuesta = HttpResponse(content_type="text/csv; charset=utf-8")
     respuesta["Content-Disposition"] = f'attachment; filename="{nombre_archivo}"'
+    # Son datos personales de menores: que ni el navegador ni un proxy guarden copia.
+    respuesta["Cache-Control"] = "no-store"
     respuesta.write(BOM)
     escritor = csv.writer(respuesta)
     escritor.writerow(encabezados)

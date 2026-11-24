@@ -511,6 +511,18 @@ class ExportarCsvTests(TestCase):
         filas = self.descargar(reverse("evaluaciones_alumno_csv", args=[self.diego.pk]))
         self.assertEqual(filas[2][9], "'=HYPERLINK(\"http://x\")")
 
+    def test_formula_precedida_de_tabulador_o_retorno_tambien_se_neutraliza(self):
+        # Hallazgo H1 de la revisión R2U3: OWASP incluye el tabulador y el retorno de carro.
+        for prefijo in ("\t", "\r"):
+            Evaluacion.objects.filter(alumno=self.lucia).update(observaciones=prefijo + "=1+1")
+            filas = self.descargar(reverse("evaluaciones_grupo_csv"), grupo="MINI-LUN_MIE")
+            self.assertEqual(filas[1][9], "'" + prefijo + "=1+1")
+
+    def test_las_descargas_no_se_guardan_en_cache(self):
+        # Hallazgo H2 de la revisión R2U3: el padrón trae datos personales de menores.
+        respuesta = self.client.get(reverse("padron_csv"))
+        self.assertEqual(respuesta["Cache-Control"], "no-store")
+
     def test_grupo_invalido_regresa_al_padron(self):
         respuesta = self.client.get(reverse("evaluaciones_grupo_csv"), {"grupo": "OTRO"})
         self.assertRedirects(respuesta, reverse("padron"))
