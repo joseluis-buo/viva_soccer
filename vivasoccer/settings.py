@@ -11,6 +11,7 @@ https://docs.djangoproject.com/en/5.2/ref/settings/
 """
 
 import os
+import re
 import socket
 import sys
 from datetime import timedelta
@@ -97,6 +98,25 @@ if DEBUG:
             ALLOWED_HOSTS.append(host)
 else:
     CORS_ALLOWED_ORIGINS = lista_del_entorno('DJANGO_CORS_ORIGINS')
+    # Solo para pruebas: los túneles de Expo cambian de subdominio en cada
+    # arranque (ej. ^https://.*\.on\.expo\.app$). Se separan por espacio y no
+    # por coma porque una regex puede llevar comas, como \d{1,3}.
+    regexes = os.environ.get('DJANGO_CORS_ORIGIN_REGEXES', '').split()
+    if regexes:
+        CORS_ALLOWED_ORIGIN_REGEXES = regexes
+        for regex in regexes:
+            # Sin ^ y $, "^https://.*\.expo\.app" también aceptaría
+            # https://x.expo.app.sitio-ajeno.com.
+            if not (regex.startswith('^') and regex.endswith('$')):
+                raise ImproperlyConfigured(
+                    f'DJANGO_CORS_ORIGIN_REGEXES: "{regex}" debe empezar con ^ y terminar con $.'
+                )
+            try:
+                re.compile(regex)
+            except re.error as error:
+                raise ImproperlyConfigured(
+                    f'DJANGO_CORS_ORIGIN_REGEXES: "{regex}" no es una regex válida ({error}).'
+                )
 
 if not DEBUG:
     # Railway atiende el HTTPS y le pasa la petición a gunicorn por HTTP; este

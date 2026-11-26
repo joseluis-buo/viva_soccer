@@ -1057,7 +1057,7 @@ class ConfiguracionProduccionTests(TestCase):
         "DJANGO_ALLOWED_HOSTS": "vivasoccer.up.railway.app",
         "DJANGO_CSRF_TRUSTED": "https://vivasoccer.up.railway.app",
     }
-    VARIABLES_DEL_PROYECTO = ["DJANGO_DEBUG", *ENTORNO_RAILWAY]
+    VARIABLES_DEL_PROYECTO = ["DJANGO_DEBUG", "DJANGO_CORS_ORIGIN_REGEXES", *ENTORNO_RAILWAY]
 
     def importar_settings(self, codigo=None, **variables):
         """Importa settings con solo `variables` (más las del .env) y devuelve el proceso."""
@@ -1133,6 +1133,39 @@ class ConfiguracionProduccionTests(TestCase):
         proceso = self.importar_settings(self.CODIGO_RED_LOCAL, **self.ENTORNO_RAILWAY)
         self.assertEqual(proceso.returncode, 0, proceso.stderr)
         self.assertEqual(proceso.stdout.strip(), "['vivasoccer.up.railway.app'] None")
+
+    # Regex de los túneles de Expo, tal como se escribe en la variable.
+    REGEX_EXPO = r"^https?://.*\.on\.expo\.app$"
+
+    def test_en_produccion_acepta_regex_de_cors_desde_el_entorno(self):
+        proceso = self.importar_settings(
+            "import re, vivasoccer.settings as s; "
+            "r = s.CORS_ALLOWED_ORIGIN_REGEXES; "
+            "print(len(r), "
+            "bool(re.match(r[0], 'https://abc-123.on.expo.app')), "
+            "bool(re.match(r[0], 'http://abc-123.on.expo.app')), "
+            "bool(re.match(r[0], 'https://abc.on.expo.app.sitio-ajeno.com')), "
+            "bool(re.match(r[1], 'https://pruebas-2.mx')))",
+            **self.ENTORNO_RAILWAY,
+            DJANGO_CORS_ORIGIN_REGEXES=f"  {self.REGEX_EXPO}   ^https://pruebas-\\d{{1,3}}\\.mx$ ",
+        )
+        self.assertEqual(proceso.returncode, 0, proceso.stderr)
+        self.assertEqual(proceso.stdout.strip(), "2 True True False True")
+
+    def test_regex_de_cors_sin_anclas_falla_con_mensaje_claro(self):
+        proceso = self.importar_settings(
+            **self.ENTORNO_RAILWAY,
+            DJANGO_CORS_ORIGIN_REGEXES=r"https://.*\.on\.expo\.app",
+        )
+        self.assertNotEqual(proceso.returncode, 0)
+        self.assertIn("debe empezar con ^ y terminar con $", proceso.stderr)
+
+    def test_regex_de_cors_invalida_falla_con_mensaje_claro(self):
+        proceso = self.importar_settings(
+            **self.ENTORNO_RAILWAY, DJANGO_CORS_ORIGIN_REGEXES="^https://(sin-cerrar$",
+        )
+        self.assertNotEqual(proceso.returncode, 0)
+        self.assertIn("no es una regex válida", proceso.stderr)
 
 
 class RendimientoConsultasTests(TestCase):

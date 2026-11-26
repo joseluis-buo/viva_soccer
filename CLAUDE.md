@@ -161,6 +161,18 @@ sesiones de Django.
 Los errores van como `{"detail": "..."}` con el código HTTP correcto. La app
 móvil depende de ese formato.
 
+### CORS en producción
+- `DJANGO_CORS_ORIGINS`: orígenes fijos, con esquema y separados por coma.
+- `DJANGO_CORS_ORIGIN_REGEXES` (opcional): regex de orígenes, **separadas por
+  espacio** (una regex puede llevar comas). Sirve para probar la app web de
+  Expo desde túneles, cuyo subdominio cambia en cada arranque:
+  `^https?://.*\.on\.expo\.app$`. Cada una debe empezar con `^` y terminar con
+  `$`, y si no compila el arranque falla con mensaje claro. Sin la variable
+  no cambia nada.
+- **Advertencia:** esa regex autoriza a cualquier túnel de Expo, no solo los
+  del equipo. Es solo para pruebas: se quita de Railway cuando la escuela use
+  la app de verdad. La app nativa no pasa por CORS y no la necesita.
+
 ## Comandos
 ```bash
 source .venv/bin/activate
