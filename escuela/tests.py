@@ -922,6 +922,9 @@ class SeedDemoTests(TestCase):
         call_command("seed_demo", stdout=StringIO())  # idempotente
         entrenador = User.objects.get(username="entrenador")
         self.assertEqual(entrenador.asignaciones.count(), 4)
+        self.assertEqual(entrenador.get_full_name(), "Ricardo Ramírez Soto")
+        papa = User.objects.get(username="5512345678")
+        self.assertEqual((papa.first_name, papa.last_name), ("Marisol", "Ruiz"))
         self.assertTrue(alumnos_del_entrenador(entrenador).exists())
 
     def test_deja_comunicados_y_observaciones_para_la_demostracion(self):

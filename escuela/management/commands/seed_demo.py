@@ -100,6 +100,12 @@ COMUNICADOS = [
 # Papá con cuenta ya activa, para entrar al modo Familia sin pasar por el
 # código. Inicia sesión con su teléfono sin espacios: 5512345678 / tutor.
 TUTOR_DEMO = ("Marisol Ruiz", "55 1234 5678")
+# Nombre y apellido de su cuenta, separados como en cualquier usuario de Django.
+CUENTA_TUTOR_DEMO = ("Marisol", "Ruiz")
+
+# Nombre del entrenador demo: es el que ve el papá junto a cada observación
+# ("Ricardo Ramírez Soto: Buen control…") y el saludo del Inicio en la app.
+NOMBRE_ENTRENADOR_DEMO = ("Ricardo", "Ramírez Soto")
 CONTRASENA_TUTOR_DEMO = "tutor"
 
 # Papá sin cuenta, con un código fijo para mostrar la activación en clase.
@@ -178,6 +184,7 @@ class Command(BaseCommand):
         admin = self._usuario("admin", "admin", "administrador", is_staff=True, is_superuser=True)
         self._usuario("secretaria", "secretaria", "secretaria", is_staff=True)
         entrenador = self._usuario("entrenador", "entrenador", "entrenador", is_staff=True)
+        self._poner_nombre(entrenador, *NOMBRE_ENTRENADOR_DEMO)
         for categoria, horario in GRUPOS_ENTRENADOR_DEMO:
             AsignacionEntrenador.objects.get_or_create(
                 entrenador=entrenador, categoria=categoria, horario=horario
@@ -251,6 +258,9 @@ class Command(BaseCommand):
         if tutor.usuario is None:
             # El mismo camino que en la app: canjear un código crea la cuenta.
             CodigoActivacion.objects.create(tutor=tutor).canjear(CONTRASENA_TUTOR_DEMO)
+            tutor.refresh_from_db(fields=["usuario"])
+        # canjear() deja el nombre completo en first_name; aquí se separa.
+        self._poner_nombre(tutor.usuario, *CUENTA_TUTOR_DEMO)
 
     def _codigo_demo(self):
         """Deja CODIGO_DEMO vigente. Si ya se canjeó o venció, lo renueva."""
@@ -264,6 +274,10 @@ class Command(BaseCommand):
             )
             codigo = CodigoActivacion.objects.create(tutor=tutor, codigo=CODIGO_DEMO)
         return codigo
+
+    def _poner_nombre(self, usuario, nombre, apellido):
+        """update() y no defaults: así también le llega a una base ya sembrada."""
+        User.objects.filter(pk=usuario.pk).update(first_name=nombre, last_name=apellido)
 
     def _usuario(self, username, password, grupo, *, is_staff=False, is_superuser=False):
         user, nuevo = User.objects.get_or_create(
